@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -25,6 +26,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class MembreService {
+
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
     @Autowired
     private final AnonceRepository anonceRepository;
     @Autowired
@@ -49,8 +53,9 @@ public class MembreService {
         try{
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             User user = (User)principal;
+            LocalDate now = LocalDate.now();
             if(reservation.DateReservationDepart().isBefore(reservation.DateReservationArrive())
-            || reservation.DateReservationDepart().isBefore(LocalDate.now())
+                    || reservation.DateReservationDepart().isBefore(now)
             ){
                 throw new Exception();
             }
@@ -174,17 +179,48 @@ public class MembreService {
                 user.getNom(),
                 user.getPrenom(),
                 user.getEmail(),
-                user.getPassword(),
                 user.getSexe(),
                 user.getDateNaissance()
         ));
-        /*
-     String firstName,
-     String lastName,
-     String email,
-     String password ,
-     Character sexe,
-     LocalDate dateNaissance
-     * */
+    }
+
+    public ResponseEntity<?> modifyUserData(User request) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        user = userRepository.findById(user.getIdUser()).get();
+        try {
+            if(! (user.getStatus() == STATUS.enabled))throw new Exception();
+            if (request.getNom() != null)
+                user.setNom(request.getNom());
+            if (request.getPrenom() != null)
+                user.setPrenom(request.getPrenom());
+            if (request.getPassword() != null)
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
+            if (request.getDateNaissance() != null)
+                user.setDateNaissance(request.getDateNaissance());
+            if (request.getSexe() != null)
+                user.setSexe(request.getSexe());
+            userRepository.save(user);
+            return ResponseEntity.ok().build();
+        }catch (Exception E){
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public ResponseEntity<?> getAnonce(long id) {
+        Optional<Anonce> anonoceOpt = anonceRepository.findById(id);
+        if(anonoceOpt.isEmpty())return ResponseEntity.badRequest().build();
+        else{
+            try{
+                Anonce anonce = anonoceOpt.get();
+                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                User user = (User) principal;
+                user = userRepository.findById(user.getIdUser()).get();
+                if(! (anonce.getIdProprietaire().getIdUser() == user.getIdUser()))throw new Exception();
+
+            }catch(Exception e){
+                return ResponseEntity.badRequest().build();
+            }
+        }
     }
 }

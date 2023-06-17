@@ -1,5 +1,6 @@
 package PFE.Gestion_Des_Anonces.Api.Controllers;
 
+import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import PFE.Gestion_Des_Anonces.Api.Services.MembreService;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.COMMENTAIRE_DTO_SUBMIT;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.RESERVATION_DTO;
@@ -30,6 +31,10 @@ public class MembreController {
     public ResponseEntity<?> getReservations(){
         return membreService.getReservations();
     }
+    @GetMapping("/Anonce")
+    public ResponseEntity<?> getAnonce(@RequestParam long id){
+        return membreService.getAnonce(id);
+    }
 
     @GetMapping("/Anonces")
     public ResponseEntity<?> getAnonces(){
@@ -46,8 +51,13 @@ public class MembreController {
         return membreService.uncancelReservation(id);
     }
 
-    @GetMapping("/UserData")
+    @GetMapping("/User/Retrieve")
     public ResponseEntity<?> getUserData(){
         return membreService.getUserData();
+    }
+
+    @PostMapping("/Modify/User")
+    public ResponseEntity<?> modifyUserData(@RequestBody @NonNull User request){
+        return membreService.modifyUserData(request);
     }
 }
