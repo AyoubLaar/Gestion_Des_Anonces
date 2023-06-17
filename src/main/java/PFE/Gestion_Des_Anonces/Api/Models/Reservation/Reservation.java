@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 import PFE.Gestion_Des_Anonces.Api.Models.Anonce.Anonce;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,7 @@ public class Reservation implements Serializable {
     private int nbrEnfants;
     private int nbrAdultes;
     private String emailClient;
-    private Boolean accepted;
+    private String telephoneClient;
+    private STATUS status;
 
 }

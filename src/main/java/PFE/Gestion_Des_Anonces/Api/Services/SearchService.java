@@ -12,8 +12,10 @@ import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_SEARCH;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.COMMENTAIRE_DTO;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.USER_COMMENT_DTO;
 import PFE.Gestion_Des_Anonces.Api.utils.SearchFilter;
+import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -35,16 +37,26 @@ public class SearchService {
     private final CategorieRepository categorieRepository;
     
     public List<ANONCE_DTO_SEARCH> filterSearch(SearchFilter filter) {
-        List<Anonce> anonces = anonceRepository.getWithFilterNoCategories(
+        List<Anonce> anonces;
+        if(filter.getType() == -1)
+            anonces=anonceRepository.getWithFilterNoCategoriesNoType(
                 filter.getMinPrix(),
                 filter.getMaxPrix(),
                 filter.getChambres(),
                 filter.getSalles(),
                 "%"+filter.getVille()+"%"
         );
+        else anonces = anonceRepository.getWithFilterNoCategories(
+                filter.getMinPrix(),
+                filter.getMaxPrix(),
+                filter.getChambres(),
+                filter.getSalles(),
+                "%"+filter.getVille()+"%",
+                filter.getType()
+        );
         if(filter.getCategories().length != 0){
             List<String> FilterCategories = Arrays.asList(filter.getCategories());
-            List<Anonce> FilteredAnonces = new ArrayList<Anonce>();
+            List<Anonce> FilteredAnonces = new ArrayList<>();
             for(Anonce anonce : anonces){
                 if(anonce.getCategories().size() >= FilterCategories.size()) {
                     int i=0;
@@ -52,13 +64,13 @@ public class SearchService {
                     while( i < anonce.getCategories().size() && count != FilterCategories.size()) {
                         if (FilterCategories.contains(anonce.getCategories().get(i).getIdCategorie()))count++;
                         i++;
-                    };
+                    }
                     if(count == FilterCategories.size())FilteredAnonces.add(anonce);
                 }
             }
             anonces = FilteredAnonces;
         }
-        List<ANONCE_DTO_SEARCH> DTOS = anonces.stream().map(anonce -> new ANONCE_DTO_SEARCH(
+        return  anonces.stream().map(anonce -> new ANONCE_DTO_SEARCH(
                 anonce.getIdAnonce(),
                 0,
                 anonce.getPrix(),
@@ -71,11 +83,10 @@ public class SearchService {
                 anonce.getIdVille().getIdVille(),
                 anonce.getIdVille().getIdRegion().getIdRegion()
         )).toList();
-        return DTOS;
     }
 
     public List<ANONCE_DTO_SEARCH> getAll() {
-        List<Anonce> anonces = anonceRepository.findAll().stream().filter(anonce -> anonce.getEnabled()).toList();
+        List<Anonce> anonces = anonceRepository.findAll().stream().filter(Anonce::getEnabled).toList();
         return anonces.stream().map(anonce -> new ANONCE_DTO_SEARCH(
                 anonce.getIdAnonce(),
                 0,
@@ -93,18 +104,18 @@ public class SearchService {
 
     public List<String> getVilles() {
         List<Ville> villes = villeRepository.findAll();
-        return villes.stream().map(ville -> ville.getIdVille()).toList();
+        return villes.stream().map(Ville::getIdVille).toList();
     }
 
     public List<String> getCategories() {
         List<Categorie> categories = categorieRepository.findAll();
-        return  categories.stream().map(categorie -> categorie.getIdCategorie()).toList();
+        return  categories.stream().map(Categorie::getIdCategorie).toList();
     }
 
-    public ANONCE_DTO_HUB getAnonce(Long id) {
+    public ResponseEntity<?> getAnonce(Long id) {
         Optional<Anonce> anonce = anonceRepository.findById(id);
-        if(anonce.isEmpty()){
-            return null;
+        if(anonce.isEmpty() || !anonce.get().getEnabled()){
+            return ResponseEntity.badRequest().build();
         }
         Anonce A = anonce.get();
         List<COMMENTAIRE_DTO> comments = A.getCommentaires().stream().map(
@@ -114,20 +125,23 @@ public class SearchService {
                         , commentaire.getContenu()
                 )
         ).toList();
-        return new ANONCE_DTO_HUB(
-                A.getNomAnonce(),
-                A.getSurface(),
-                A.getNbreSalleBain(),
-                A.getNbreChambres(),
-                A.getNbreEtages(),
-                A.getPrix(),
-                A.getImageUrl(),
-                A.getDescription(),
-                A.getEmail(),
-                A.getTelephone(),
-                A.getIdVille().getIdVille(),
-                A.getIdVille().getIdRegion().getIdRegion(),
-                comments
+        return ResponseEntity.ok().body(
+                new ANONCE_DTO_HUB(
+                    A.getNomAnonce(),
+                    A.getSurface(),
+                    A.getNbreSalleBain(),
+                    A.getNbreChambres(),
+                    A.getNbreEtages(),
+                    A.getPrix(),
+                    A.getImageUrl(),
+                    A.getDescription(),
+                    A.getEmail(),
+                    A.getTelephone(),
+                    A.getIdVille().getIdVille(),
+                    A.getIdVille().getIdRegion().getIdRegion(),
+                    A.getType(),
+                    comments
+                )
         );
     }
 }

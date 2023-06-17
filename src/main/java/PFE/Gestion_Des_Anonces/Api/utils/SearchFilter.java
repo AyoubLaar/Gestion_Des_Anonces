@@ -14,4 +14,5 @@ public class SearchFilter {
     private float salles;
     private String ville;
     private String [] categories;
+    private int Type;
 }

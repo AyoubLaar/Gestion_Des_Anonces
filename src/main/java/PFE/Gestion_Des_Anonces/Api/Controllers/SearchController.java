@@ -6,6 +6,8 @@ import PFE.Gestion_Des_Anonces.Api.Services.SearchService;
 import PFE.Gestion_Des_Anonces.Api.utils.SearchFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,13 +23,14 @@ public class SearchController {
         return searchService.getAll();
     }
 
+
     @GetMapping(path = "/Anonce")
-    public ANONCE_DTO_HUB getAnonce(@RequestParam Long id){
+    public ResponseEntity<?> getAnonce(@RequestParam @NonNull Long id){
         return searchService.getAnonce(id);
     }
 
     @PostMapping(path = "/filter")
-    public List<ANONCE_DTO_SEARCH> filterSearch(@RequestBody SearchFilter filter){
+    public List<ANONCE_DTO_SEARCH> filterSearch(@RequestBody @NonNull SearchFilter filter){
         return searchService.filterSearch(filter);
     }
 

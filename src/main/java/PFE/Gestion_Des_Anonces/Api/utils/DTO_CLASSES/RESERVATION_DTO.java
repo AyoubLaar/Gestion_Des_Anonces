@@ -7,8 +7,10 @@ public record RESERVATION_DTO(
         LocalDate DateReservationArrive,
         LocalDate DateReservationDepart,
         String emailClient,
+        String telephoneClient,
         Integer nbrEnfants,
         Integer nbrAdultes
+
 
 ) {
 }

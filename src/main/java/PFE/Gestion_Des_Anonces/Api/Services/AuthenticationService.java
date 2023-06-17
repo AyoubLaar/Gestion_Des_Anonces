@@ -5,15 +5,14 @@ import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.LOGIN_REQUEST_DTO;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.RoleRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import PFE.Gestion_Des_Anonces.Api.Models.User.UserRepository;
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +29,6 @@ public class AuthenticationService {
     private final RoleRepository roleRepository;
     @Autowired
     private final JwtService jwtService;
-    @Autowired
-    private final AuthenticationManager authenticationManager;
 
 
 
@@ -50,7 +47,7 @@ public class AuthenticationService {
                 .sexe(request.getSexe())
                 .dateNaissance(request.getDateNaissance())
                 .dateCreationCompte(new Timestamp(System.currentTimeMillis()))
-                .Enabled(true)
+                .status(STATUS.enabled)
                 .build();
         userRepository.save(user);
         String jwtToken = jwtService.generateToken(user);
@@ -65,7 +62,7 @@ public class AuthenticationService {
             return ResponseEntity.status(401).build();
         }
         User user = userList.get(0);
-        if(user != null && user.getEnabled()){
+        if(user != null && user.isEnabled()){
             boolean samePassword = passwordEncoder.matches(request.password(),user.getPassword());
             if(!samePassword)return ResponseEntity.status(401).build();
             System.out.println("Password Verified !");

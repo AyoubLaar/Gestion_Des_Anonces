@@ -5,6 +5,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.Commentaire.Commentaire;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
+import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,12 +30,13 @@ public class Anonce implements Serializable {
     private long idAnonce;
     private int surface , nbreSalleBain , nbreEtages , nbreChambres;
     private float prix, latitude , longitude ;
-    private char type ;
-    private Boolean enabled;
+    private TYPE type ;
+    private STATUS status;
     private Timestamp dateCreationAnonce;
     private String email;
     private String telephone;
     private String nomAnonce;
+    @Column(length = 512)
     private String description;
     private String imageUrl;
     @ManyToOne
@@ -55,5 +58,9 @@ public class Anonce implements Serializable {
     private List<Reservation> Reservations=new ArrayList<>();
     @OneToMany(mappedBy="idAnonce")
     private List<Commentaire> commentaires=new ArrayList<>();
+
+    public Boolean getEnabled(){
+        return status.equals(STATUS.enabled);
+    }
 
 }

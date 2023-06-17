@@ -1,5 +1,7 @@
 package PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES;
 
+import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
+
 import java.util.List;
 
 public record ANONCE_DTO_HUB(
@@ -15,6 +17,7 @@ public record ANONCE_DTO_HUB(
         String telephone ,
         String ville ,
         String region,
+        TYPE type,
         List<COMMENTAIRE_DTO> Commentaires
 ) {
 }

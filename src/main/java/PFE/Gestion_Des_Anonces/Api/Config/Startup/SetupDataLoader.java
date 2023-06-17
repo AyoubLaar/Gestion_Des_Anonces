@@ -16,6 +16,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import PFE.Gestion_Des_Anonces.Api.Models.User.UserRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.VilleRepository;
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
+import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,6 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -87,7 +88,7 @@ public class SetupDataLoader implements
         user.setPassword(passwordEncoder.encode("test"));
         user.setEmail("test@test.com");
         user.setRoles(adminRole);
-        user.setEnabled(true);
+        user.setStatus(STATUS.enabled);
         userRepository.save(user);
         }
         if(userRepository.findByEmail("Test_Membre@test.com").isEmpty()) {
@@ -97,7 +98,7 @@ public class SetupDataLoader implements
             user1.setPassword(passwordEncoder.encode("test"));
             user1.setEmail("Test_Membre@test.com");
             user1.setRoles(membreRole);
-            user1.setEnabled(true);
+            user1.setStatus(STATUS.enabled);
             userRepository.save(user1);
         }
         saveAnonces();
@@ -168,7 +169,7 @@ public class SetupDataLoader implements
         List<Anonce> anonces = List.of(
                 Anonce.builder()
                         .email("email@email.com")
-                        .enabled(true)
+                        .status(STATUS.enabled)
                         .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
                         .description("Nestled amidst breathtaking  decor, plush furnishings.")
                         .idProprietaire(user1)
@@ -176,7 +177,7 @@ public class SetupDataLoader implements
                         .latitude((float)Math.random()*90)
                         .longitude((float)Math.random()*180)
                         .nomAnonce("Serena Hub")
-                        .type('L')
+                        .type(TYPE.location)
                         .prix(100)
                         .telephone("0694853606")
                         .surface(400)
@@ -186,15 +187,15 @@ public class SetupDataLoader implements
                         .build(),
                 Anonce.builder()
                         .email("email@email.com")
-                        .enabled(true)
+                        .status(STATUS.enabled)
                         .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
                         .description("Nestled amidst breathtaking  decor, plush furnishings.")
                         .idProprietaire(user1)
                         .imageUrl("https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&w=350&dpr=2")
                         .latitude((float)Math.random()*90)
                         .longitude((float)Math.random()*180)
-                        .nomAnonce("Serena no Piscine")
-                        .type('L')
+                        .nomAnonce("Serena no Appartement")
+                        .type(TYPE.achat)
                         .prix(100)
                         .telephone("0694853606")
                         .surface(400)
@@ -204,15 +205,15 @@ public class SetupDataLoader implements
                         .build(),
                 Anonce.builder()
                         .email("email@email.com")
-                        .enabled(true)
+                        .status(STATUS.enabled)
                         .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
                         .description("Nestled amidst breathtaking  decor, plush furnishings.")
                         .idProprietaire(user1)
                         .imageUrl("https://i.insider.com/60ae84bea412370019d321ff?width=700")
                         .latitude((float)Math.random()*90)
                         .longitude((float)Math.random()*180)
-                        .nomAnonce("Serena no Appartement")
-                        .type('A')
+                        .nomAnonce("Serena no Piscine")
+                        .type(TYPE.location)
                         .prix(100)
                         .telephone("0694853606")
                         .surface(400)
@@ -222,7 +223,7 @@ public class SetupDataLoader implements
                         .build(),
                 Anonce.builder()
                         .email("email@email.com")
-                        .enabled(false)
+                        .status(STATUS.disabled)
                         .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
                         .description("Nestled amidst breathtaking  decor, plush furnishings.")
                         .idProprietaire(user1)
@@ -230,7 +231,7 @@ public class SetupDataLoader implements
                         .latitude((float)Math.random()*90)
                         .longitude((float)Math.random()*180)
                         .nomAnonce("Disabled")
-                        .type('A')
+                        .type(TYPE.achat)
                         .prix(100)
                         .telephone("0694853606")
                         .surface(400)

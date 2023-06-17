@@ -1,12 +1,13 @@
 package PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES;
 
 
+import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 
 public record ANONCE_DTO_SEARCH(
         long idAnonce,
         int nbreEtoiles,
         float prix, float latitude , float longitude ,
-        char type , Boolean etat,
+        TYPE type , Boolean etat,
         String imageUrl,
         String nomAnonce,
         String idVille ,

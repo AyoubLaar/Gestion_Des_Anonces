@@ -7,12 +7,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+
 import PFE.Gestion_Des_Anonces.Api.Models.Anonce.Anonce;
 import PFE.Gestion_Des_Anonces.Api.Models.Commentaire.Commentaire;
 import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
 import PFE.Gestion_Des_Anonces.Api.Models.Privilege.Privilege;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.Role;
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -52,7 +54,7 @@ public class User implements UserDetails, Serializable {
     private List<Evaluation> evaluations;
     @OneToMany(mappedBy = "idProprietaire")
     private List<Evaluation> evaluationsCree;
-    private Boolean Enabled=true;
+    private STATUS status;
     @ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
     @JoinTable(
             name = "users_roles",
@@ -110,15 +112,8 @@ public class User implements UserDetails, Serializable {
 
     @Override
     public boolean isEnabled() {
-        return Enabled;
+        return status.equals(STATUS.enabled);
     }
 
-    public void reserver(Reservation R) throws Exception {
-        if(this.Enabled){
-            this.reservations.add(R);
-        }else{
-            throw new Exception();
-        }
-    }
 }
 
