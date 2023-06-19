@@ -144,6 +144,10 @@ public class SetupDataLoader implements
                 Categorie
                         .builder()
                         .idCategorie("Piscine")
+                        .build(),
+                Categorie
+                        .builder()
+                        .idCategorie("Autre")
                         .build()
         );
         for(Categorie C : Categories){

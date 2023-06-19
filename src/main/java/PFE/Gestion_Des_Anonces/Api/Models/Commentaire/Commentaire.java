@@ -24,8 +24,6 @@ public class Commentaire  implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long idCommentaire;
 
-    private int nbretoiles;
-
     private String contenu;
 
     private Timestamp DatePublication;

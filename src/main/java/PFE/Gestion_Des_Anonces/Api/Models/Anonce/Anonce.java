@@ -2,6 +2,7 @@ package PFE.Gestion_Des_Anonces.Api.Models.Anonce;
 
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.Categorie;
 import PFE.Gestion_Des_Anonces.Api.Models.Commentaire.Commentaire;
+import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
@@ -55,7 +56,9 @@ public class Anonce implements Serializable {
     )
     private List<Categorie> categories=new ArrayList<>();
     @OneToMany(mappedBy="idAnonce")
-    private List<Reservation> Reservations=new ArrayList<>();
+    private List<Reservation> reservations=new ArrayList<>();
+    @OneToMany(mappedBy="idAnonce")
+    private List<Evaluation> evaluations=new ArrayList<>();
     @OneToMany(mappedBy="idAnonce")
     private List<Commentaire> commentaires=new ArrayList<>();
 

@@ -1,5 +1,6 @@
 package PFE.Gestion_Des_Anonces.Api.Controllers;
 
+import PFE.Gestion_Des_Anonces.Api.Services.FileService;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_HUB;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_SEARCH;
 import PFE.Gestion_Des_Anonces.Api.Services.SearchService;
@@ -15,6 +16,8 @@ import java.util.List;
 @RequestMapping(path = "/api/Search")
 @RequiredArgsConstructor
 public class SearchController {
+
+
     @Autowired
     private final SearchService searchService;
 
@@ -37,6 +40,10 @@ public class SearchController {
     @GetMapping(path = "/villes")
     public List<String> getVilles(){
         return searchService.getVilles();
+    }
+    @GetMapping(path = "/regions")
+    public List<String> getregions(){
+        return searchService.getregions();
     }
 
     @GetMapping(path = "/categories")

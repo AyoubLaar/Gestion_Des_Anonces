@@ -5,6 +5,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.Anonce.Anonce;
 import PFE.Gestion_Des_Anonces.Api.Models.Anonce.AnonceRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.Categorie;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.CategorieRepository;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.RegionRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.VilleRepository;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_HUB;
@@ -12,7 +14,6 @@ import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_SEARCH;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.COMMENTAIRE_DTO;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.USER_COMMENT_DTO;
 import PFE.Gestion_Des_Anonces.Api.utils.SearchFilter;
-import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,8 @@ public class SearchService {
 
     @Autowired
     private final VilleRepository villeRepository;
+    @Autowired
+    private final RegionRepository regionRepository;
 
     @Autowired
     private final CategorieRepository categorieRepository;
@@ -72,7 +75,7 @@ public class SearchService {
         }
         return  anonces.stream().map(anonce -> new ANONCE_DTO_SEARCH(
                 anonce.getIdAnonce(),
-                0,
+                anonceRepository.getStars(anonce.getIdAnonce()),
                 anonce.getPrix(),
                 anonce.getLatitude(),
                 anonce.getLongitude(),
@@ -85,11 +88,12 @@ public class SearchService {
         )).toList();
     }
 
+
     public List<ANONCE_DTO_SEARCH> getAll() {
         List<Anonce> anonces = anonceRepository.findAll().stream().filter(Anonce::getEnabled).toList();
         return anonces.stream().map(anonce -> new ANONCE_DTO_SEARCH(
                 anonce.getIdAnonce(),
-                0,
+                anonceRepository.getStars(anonce.getIdAnonce()),
                 anonce.getPrix(),
                 anonce.getLatitude(),
                 anonce.getLongitude(),
@@ -128,6 +132,7 @@ public class SearchService {
         return ResponseEntity.ok().body(
                 new ANONCE_DTO_HUB(
                     A.getNomAnonce(),
+                        anonceRepository.getStars(A.getIdAnonce()),
                     A.getSurface(),
                     A.getNbreSalleBain(),
                     A.getNbreChambres(),
@@ -143,6 +148,11 @@ public class SearchService {
                     comments
                 )
         );
+    }
+
+    public List<String> getregions() {
+        List<Region> regions = regionRepository.findAll();
+        return regions.stream().map(Region::getIdRegion).toList();
     }
 }
 

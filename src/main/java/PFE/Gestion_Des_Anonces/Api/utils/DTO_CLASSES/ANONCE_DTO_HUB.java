@@ -6,6 +6,7 @@ import java.util.List;
 
 public record ANONCE_DTO_HUB(
         String Nom ,
+        float nbrEtoiles,
         int Surface ,
         int nbreSalleBain,
         int nbreChambres ,

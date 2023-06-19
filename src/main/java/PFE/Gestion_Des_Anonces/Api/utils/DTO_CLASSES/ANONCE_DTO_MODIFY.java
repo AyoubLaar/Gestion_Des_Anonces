@@ -6,6 +6,7 @@ import java.util.List;
 
 public record ANONCE_DTO_MODIFY(
         String Nom ,
+        float nbrEtoiles,
         int Surface ,
         int nbreSalleBain,
         int nbreChambres ,
@@ -18,7 +19,7 @@ public record ANONCE_DTO_MODIFY(
         String ville ,
         String region,
         TYPE type,
-        List<RESERVATION_DTO_PROPRIETAIRE> reservations,
-
+        List<RESERVATION_DTO_PROPRIETAIRE> reservations ,
+        List<EVALUATION_DTO_PROPRIETAIRE> evaluations
 ) {
 }

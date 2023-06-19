@@ -19,13 +19,20 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.cloudinary.Cloudinary;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfig {
+public class Config {
+
+    private final String CLOUD_NAME = "drkbf7big";
+    private final String API_KEY = "176817514936632";
+    private final String API_SECRET = "y-5ZNzPECJeZxd23g2icnPRYTvs";
 
     @Autowired
     private final JwtTokenFilter jwtTokenFilter;
@@ -33,6 +40,15 @@ public class SecurityConfig {
     private final UserService userService;
     @Autowired
     private final RoleRepository roleRepository;
+
+    @Bean
+    public Cloudinary cloudinary(){
+        Map<String, String> config = new HashMap<>();
+        config.put("cloud_name",CLOUD_NAME);
+        config.put("api_key",API_KEY);
+        config.put("api_secret",API_SECRET);
+        return new Cloudinary(config);
+    }
     @Bean
     public PasswordEncoder encoder() {
         return new BCryptPasswordEncoder();

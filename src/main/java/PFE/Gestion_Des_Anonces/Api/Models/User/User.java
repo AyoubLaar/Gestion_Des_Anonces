@@ -52,8 +52,6 @@ public class User implements UserDetails, Serializable {
     private List<Commentaire> commentaires;
     @OneToMany(mappedBy = "idMembre")
     private List<Evaluation> evaluations;
-    @OneToMany(mappedBy = "idProprietaire")
-    private List<Evaluation> evaluationsCree;
     private STATUS status;
     @ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
     @JoinTable(

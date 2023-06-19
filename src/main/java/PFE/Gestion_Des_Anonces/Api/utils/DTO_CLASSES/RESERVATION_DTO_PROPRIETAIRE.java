@@ -8,7 +8,6 @@ public record RESERVATION_DTO_PROPRIETAIRE (
     Long id,
     String nom ,
     String prenom ,
-    String anonceName ,
     LocalDate DateReservationArrive,
     LocalDate DateReservationDepart,
     String emailClient,

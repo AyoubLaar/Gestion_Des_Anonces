@@ -5,7 +5,7 @@ import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 
 public record ANONCE_DTO_SEARCH(
         long idAnonce,
-        int nbreEtoiles,
+        float nbreEtoiles,
         float prix, float latitude , float longitude ,
         TYPE type , Boolean etat,
         String imageUrl,

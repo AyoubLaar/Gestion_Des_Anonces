@@ -25,6 +25,12 @@ public interface AnonceRepository extends JpaRepository<Anonce,Long> {
                                float salles,
                                String ville,
                                int type);
+
+    @Query(value="SELECT COALESCE(AVG(nbretoiles),0) FROM evaluation " +
+            "WHERE id_anonce = :id "
+            , nativeQuery = true
+    )
+    Float getStars(long id);
     @Query(value="SELECT distinct a.* FROM anonce a " +
             "WHERE a.prix >= :minPrix " +
             "AND a.prix <= :maxPrix " +
