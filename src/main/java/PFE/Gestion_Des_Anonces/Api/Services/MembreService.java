@@ -6,6 +6,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.Categorie.Categorie;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.CategorieRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Commentaire.Commentaire;
 import PFE.Gestion_Des_Anonces.Api.Models.Commentaire.CommentaireRepository;
+import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
+import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.EvaluationRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.ReservationRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
@@ -14,24 +16,25 @@ import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.VilleRepository;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.*;
 import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
+import com.cloudinary.Cloudinary;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class MembreService {
 
+    @Autowired
+    private final Cloudinary cloudinary;
     @Autowired
     private final PasswordEncoder passwordEncoder;
     @Autowired
@@ -46,7 +49,8 @@ public class MembreService {
     private final VilleRepository villeRepository;
     @Autowired
     private final CategorieRepository categorieRepository;
-
+    @Autowired
+    private EvaluationRepository evaluationRepository;
 
     @Transactional
     public ResponseEntity<?> reserver(RESERVATION_DTO reservation) {
@@ -63,21 +67,26 @@ public class MembreService {
         try{
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             User user = (User)principal;
+            user = userRepository.findById(user.getIdUser()).get();
+            if(anonce.getIdProprietaire().getIdUser() == user.getIdUser() || !anonce.getEnabled()){
+                throw new Exception();
+            }
             LocalDate now = LocalDate.now();
             if(reservation.DateReservationDepart().isBefore(reservation.DateReservationArrive())
-                    || reservation.DateReservationDepart().isBefore(now)
+                    || reservation.DateReservationArrive().isBefore(now)
             ){
                 throw new Exception();
             }
             Reservation res = Reservation
                     .builder()
-                    .DateReservationArrive(reservation.DateReservationArrive())
-                    .DateReservationDepart(reservation.DateReservationDepart())
+                    .dateReservationArrive(reservation.DateReservationArrive())
+                    .dateReservationDepart(reservation.DateReservationDepart())
                     .status(STATUS.pending)
                     .nbrAdultes(reservation.nbrAdultes())
                     .nbrEnfants(reservation.nbrEnfants())
                     .emailClient(reservation.emailClient())
                     .telephoneClient(reservation.telephoneClient())
+                    .dateReservation(new Timestamp(System.currentTimeMillis()))
                     .build();
             res.setIdAnonce(anonce);
             res.setIdMembre(user);
@@ -97,6 +106,7 @@ public class MembreService {
         try{
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             User user = (User)principal;
+            if(user.getStatus() != STATUS.enabled || anonce.getStatus() != STATUS.enabled)throw new Exception();
             Commentaire res = Commentaire
                     .builder()
                     .idMembre(user)
@@ -116,7 +126,14 @@ public class MembreService {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             User user = (User) principal;
             user = userRepository.findById(user.getIdUser()).get();
+            if(user.getStatus() != STATUS.enabled)throw new Exception();
             List<Reservation> reservations = user.getReservations();
+            for(Reservation reservation : reservations){
+                if(reservation.getDateReservationDepart().isBefore(LocalDate.now()) && reservation.getStatus().equals(STATUS.accepted)){
+                    reservation.setStatus(STATUS.enAttenteEvaluation);
+                }
+            }
+            reservationRepository.saveAll(reservations);
             return ResponseEntity.ok().body(reservations.stream().map(reservation -> new RESERVATION_PROFIL_DTO(
                     reservation.getIdReservation(),
                     reservation.getIdAnonce().getIdAnonce(),
@@ -142,7 +159,7 @@ public class MembreService {
             Optional<Reservation> res = reservationRepository.findById(id);
             if(res.isEmpty())throw new Exception();
             Reservation reservation = res.get();
-            if(reservation.getIdMembre().getIdUser() != user.getIdUser())throw new Exception();
+            if(reservation.getIdMembre().getIdUser() != user.getIdUser() || user.getStatus() != STATUS.enabled)throw new Exception();
             reservation.setStatus(STATUS.cancelled);
             reservationRepository.save(reservation);
             return ResponseEntity.ok().build();
@@ -157,9 +174,10 @@ public class MembreService {
         user = userRepository.findById(user.getIdUser()).get();
         List<Anonce> anonces = user.getAnonces();
         if(anonces.isEmpty())return ResponseEntity.badRequest().build();
+        anonces = anonces.stream().filter(anonce->anonce.getStatus() != STATUS.removed).toList();
         return ResponseEntity.ok(anonces.stream().map(anonce -> new ANONCE_DTO_SEARCH(
                 anonce.getIdAnonce(),
-                0,
+                anonceRepository.getStars(anonce.getIdAnonce()),
                 anonce.getPrix(),
                 anonce.getLatitude(),
                 anonce.getLongitude(),
@@ -168,7 +186,8 @@ public class MembreService {
                 anonce.getImageUrl(),
                 anonce.getNomAnonce(),
                 anonce.getIdVille().getIdVille(),
-                anonce.getIdVille().getIdRegion().getIdRegion()
+                anonce.getIdVille().getIdRegion().getIdRegion(),
+                anonce.getStatus()
         )).toList());
     }
 
@@ -180,7 +199,7 @@ public class MembreService {
             User user = (User) principal;
             user = userRepository.findById(user.getIdUser()).get();
             Reservation reservation = res.get();
-            if(reservation.getIdMembre().getIdUser() != user.getIdUser())throw new Exception();
+            if(reservation.getIdMembre().getIdUser() != user.getIdUser() || !(user.getStatus() == STATUS.enabled))throw new Exception();
             reservation.setStatus(STATUS.pending);
             reservationRepository.save(reservation);
             return ResponseEntity.ok().build();
@@ -193,6 +212,7 @@ public class MembreService {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = (User) principal;
         user = userRepository.findById(user.getIdUser()).get();
+        if(!(user.getStatus() == STATUS.enabled))return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(new USER_DTO(
                 user.getNom(),
                 user.getPrenom(),
@@ -207,7 +227,7 @@ public class MembreService {
         User user = (User) principal;
         user = userRepository.findById(user.getIdUser()).get();
         try {
-            if(! (user.getStatus() == STATUS.enabled))throw new Exception();
+            if(!(user.getStatus() == STATUS.enabled))throw new Exception();
             if (request.getNom() != null)
                 user.setNom(request.getNom());
             if (request.getPrenom() != null)
@@ -225,6 +245,7 @@ public class MembreService {
         }
     }
 
+    //PROPRIETAIRE
     public ResponseEntity<?> getAnonceDetails(long id) {
         Optional<Anonce> anonoceOpt = anonceRepository.findById(id);
         if(anonoceOpt.isEmpty())return ResponseEntity.badRequest().build();
@@ -234,7 +255,8 @@ public class MembreService {
                 Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                 User user = (User) principal;
                 user = userRepository.findById(user.getIdUser()).get();
-                if(A.getIdProprietaire().getIdUser() != user.getIdUser())throw new Exception();
+                if(A.getIdProprietaire().getIdUser() != user.getIdUser() || A.getStatus() == STATUS.removed)
+                    return ResponseEntity.badRequest().build();
                 List<RESERVATION_DTO_PROPRIETAIRE> reservations = A.getReservations().stream().map(
                         reservation -> new RESERVATION_DTO_PROPRIETAIRE(
                                 reservation.getIdReservation(),
@@ -260,6 +282,7 @@ public class MembreService {
                                 )
                         )).toList();
                 return ResponseEntity.ok(new ANONCE_DTO_MODIFY(
+                        A.getStatus(),
                         A.getNomAnonce(),
                         anonceRepository.getStars(A.getIdAnonce()),
                         A.getSurface(),
@@ -345,6 +368,7 @@ public class MembreService {
         }
     }
 
+    //PROPRIETAIRE
     public ResponseEntity<?> getAnonceData(Long id) {
         Optional<Anonce> anonceOptional = anonceRepository.findById(id);
         if(anonceOptional.isEmpty())return ResponseEntity.badRequest().build();
@@ -353,7 +377,8 @@ public class MembreService {
             User user = (User) principal;
             user = userRepository.findById(user.getIdUser()).get();
             Anonce anonce = anonceOptional.get();
-            if(anonce.getIdProprietaire().getIdUser() != user.getIdUser())return ResponseEntity.badRequest().build();
+            if(anonce.getIdProprietaire().getIdUser() != user.getIdUser() || anonce.getStatus() == STATUS.adminDisabled || anonce.getStatus() == STATUS.removed)
+                return ResponseEntity.badRequest().build();
             List<Categorie> categoriesList = anonce.getCategories();
             String [] categories = new String[categoriesList.size()];
             for(int i = 0 ; i < categories.length ; i++){
@@ -361,6 +386,7 @@ public class MembreService {
             }
             return ResponseEntity.ok(new ANONCE_DTO_PUBLIER(
                     anonce.getType(),
+                    anonce.getStatus(),
                     anonce.getLatitude(),
                     anonce.getLongitude(),
                     anonce.getPrix(),
@@ -380,6 +406,7 @@ public class MembreService {
         }
     }
 
+    //PROPRIETAIRE
     public ResponseEntity<?> modifierAnonce(Long id , ANONCE_DTO_PUBLIER DTO){
         if (    DTO == null ||
                 DTO.type() == null ||
@@ -415,10 +442,12 @@ public class MembreService {
                 categories.add(categorie.get());
             }
             Optional<Anonce> anonceOptional = anonceRepository.findById(id);
-            if(anonceOptional.isEmpty() || anonceOptional.get().getIdProprietaire().getIdUser() != user.getIdUser()){
+            if(anonceOptional.isEmpty()){
                 return ResponseEntity.badRequest().build();
             }
             Anonce anonce = anonceOptional.get();
+            if(anonce.getIdProprietaire().getIdUser() != user.getIdUser() || anonce.getStatus() == STATUS.adminDisabled || anonce.getStatus() == STATUS.removed)
+                return ResponseEntity.badRequest().build();
             anonce.setPrix(DTO.prix());
             anonce.setIdVille(ville);
             anonce.setCategories(categories);
@@ -434,7 +463,6 @@ public class MembreService {
             anonce.setIdProprietaire(user);
             anonce.setDescription(DTO.description());
             anonce.setType(DTO.type());
-            anonce.setStatus(STATUS.enabled);
             anonce.setTelephone(DTO.telephone());
             anonceRepository.save(anonce);
             return ResponseEntity.ok().build();
@@ -443,7 +471,7 @@ public class MembreService {
         }
     }
 
-
+    //PROPRIETAIRE
     public ResponseEntity<?> getAnonceReservations(Long id) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = (User) principal;
@@ -453,9 +481,10 @@ public class MembreService {
             return ResponseEntity.badRequest().build();
         }
         Anonce anonce = anonceOptional.get();
-        if(anonce.getIdProprietaire().getIdUser() != user.getIdUser() || !anonce.getEnabled())return ResponseEntity.badRequest().build();
+        if(anonce.getIdProprietaire().getIdUser() != user.getIdUser() || anonce.getStatus() == STATUS.removed)return ResponseEntity.badRequest().build();
         List<Reservation> reservations = anonce.getReservations();
-        return ResponseEntity.ok(reservations.stream().map(reservation -> new RESERVATION_DTO_ANONCE(
+        return ResponseEntity.ok(reservations.stream().filter(reservation-> !reservation.getStatus().equals(STATUS.cancelled))
+                .map(reservation -> new RESERVATION_DTO_ANONCE(
                 reservation.getIdReservation(),
                 reservation.getDateReservationArrive(),
                 reservation.getDateReservationDepart(),
@@ -466,5 +495,110 @@ public class MembreService {
                 reservation.getStatus())
             ).toList()
         );
+    }
+
+    //PROPRIETAIRE
+    public ResponseEntity<?> modifierStatus(Long id) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        user = userRepository.findById(user.getIdUser()).get();
+        Optional<Anonce> anonceOptional = anonceRepository.findById(id);
+        if(anonceOptional.isEmpty())return ResponseEntity.badRequest().build();
+        Anonce anonce = anonceOptional.get();
+        if(anonce.getIdProprietaire().getIdUser() != user.getIdUser())return ResponseEntity.badRequest().build();
+        if(anonce.getStatus() == STATUS.userDisabled)
+        anonce.setStatus(STATUS.enabled);
+        else if(anonce.getStatus() == STATUS.enabled)
+        anonce.setStatus(STATUS.userDisabled);
+        else return ResponseEntity.badRequest().build();
+        anonceRepository.save(anonce);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> deleteImage(Long id) {
+        Optional<Anonce> anonceOpt = anonceRepository.findById(id);
+        if(anonceOpt.isEmpty())return ResponseEntity.badRequest().build();
+        Anonce anonce = anonceOpt.get();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        user = userRepository.findById(user.getIdUser()).get();
+        if(anonce.getIdProprietaire().getIdUser() == user.getIdUser()){
+            String url = anonce.getImageUrl();
+            String [] splitUrl = url.split("/");
+            String publicId = splitUrl[splitUrl.length -1 ].split("\\.")[0];
+            try {
+                cloudinary.uploader().destroy(publicId,null);
+                anonce.setImageUrl(null);
+                anonceRepository.save(anonce);
+                return ResponseEntity.ok().build();
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }else{
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+    public ResponseEntity<?> evaluer(Long id , Map<String,String> body) {
+        Optional<Reservation> reservationOptional = reservationRepository.findById(id);
+        if(reservationOptional.isEmpty())return ResponseEntity.badRequest().build();
+        Reservation reservation = reservationOptional.get();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        if(reservation.getIdMembre().getIdUser() != user.getIdUser() || reservation.getEvaluation() != null)return ResponseEntity.badRequest().build();
+        user = userRepository.findById(user.getIdUser()).get();
+        Anonce anonce = reservation.getIdAnonce();
+        Evaluation evaluation = Evaluation.builder()
+                .datePublication(new Timestamp(System.currentTimeMillis()))
+                .contenu(body.get("evaluation"))
+                .nbretoiles(Integer.valueOf(body.get("nbretoiles")))
+                .idAnonce(anonce)
+                .idMembre(user)
+                .reservation(reservation)
+                .build();
+        evaluationRepository.save(evaluation);
+        reservation = reservationRepository.findById(reservation.getIdReservation()).get();
+        reservation.setStatus(STATUS.evaluated);
+        reservation.setEvaluation(evaluation);
+        reservationRepository.save(reservation);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> acceptReservation(Long id) {
+        Optional<Reservation> reservationOptional = reservationRepository.findById(id);
+        if(reservationOptional.isEmpty())return ResponseEntity.badRequest().build();
+        Reservation reservation = reservationOptional.get();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        if(reservation.getIdAnonce().getIdProprietaire().getIdUser() != user.getIdUser())return ResponseEntity.badRequest().build();
+        reservation.setStatus(STATUS.accepted);
+        reservationRepository.save(reservation);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> refuseReservation(Long id) {
+        Optional<Reservation> reservationOptional = reservationRepository.findById(id);
+        if(reservationOptional.isEmpty())return ResponseEntity.badRequest().build();
+        Reservation reservation = reservationOptional.get();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        if(reservation.getIdAnonce().getIdProprietaire().getIdUser() != user.getIdUser())return ResponseEntity.badRequest().build();
+        reservation.setStatus(STATUS.refused);
+        reservationRepository.save(reservation);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> supprimerAnonce(Long id) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        user = userRepository.findById(user.getIdUser()).get();
+        Optional<Anonce> anonceOptional = anonceRepository.findById(id);
+        if(anonceOptional.isEmpty())return ResponseEntity.badRequest().build();
+        Anonce anonce = anonceOptional.get();
+        if(anonce.getIdProprietaire().getIdUser() != user.getIdUser())return ResponseEntity.badRequest().build();
+        anonce.setStatus(STATUS.removed);
+        anonceRepository.save(anonce);
+        return ResponseEntity.ok().build();
     }
 }

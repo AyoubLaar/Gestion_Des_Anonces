@@ -16,11 +16,8 @@ import java.util.List;
 public class Privilege {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    private String id;
 
-    private String name;
-
-    @ManyToMany(mappedBy = "privileges" ,fetch = FetchType.EAGER)
+    @ManyToMany(mappedBy = "privileges" ,fetch = FetchType.LAZY)
     private List<Role> roles;
 }

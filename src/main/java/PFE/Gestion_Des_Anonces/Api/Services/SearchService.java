@@ -5,6 +5,7 @@ import PFE.Gestion_Des_Anonces.Api.Models.Anonce.Anonce;
 import PFE.Gestion_Des_Anonces.Api.Models.Anonce.AnonceRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.Categorie;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.CategorieRepository;
+import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
 import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
 import PFE.Gestion_Des_Anonces.Api.Models.Region.RegionRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
@@ -19,10 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -84,7 +82,8 @@ public class SearchService {
                 anonce.getImageUrl(),
                 anonce.getNomAnonce(),
                 anonce.getIdVille().getIdVille(),
-                anonce.getIdVille().getIdRegion().getIdRegion()
+                anonce.getIdVille().getIdRegion().getIdRegion(),
+                anonce.getStatus()
         )).toList();
     }
 
@@ -102,7 +101,8 @@ public class SearchService {
                 anonce.getImageUrl(),
                 anonce.getNomAnonce(),
                 anonce.getIdVille().getIdVille(),
-                anonce.getIdVille().getIdRegion().getIdRegion()
+                anonce.getIdVille().getIdRegion().getIdRegion(),
+                anonce.getStatus()
         )).toList();
     }
 
@@ -132,7 +132,7 @@ public class SearchService {
         return ResponseEntity.ok().body(
                 new ANONCE_DTO_HUB(
                     A.getNomAnonce(),
-                        anonceRepository.getStars(A.getIdAnonce()),
+                    anonceRepository.getStars(A.getIdAnonce()),
                     A.getSurface(),
                     A.getNbreSalleBain(),
                     A.getNbreChambres(),
@@ -154,5 +154,23 @@ public class SearchService {
         List<Region> regions = regionRepository.findAll();
         return regions.stream().map(Region::getIdRegion).toList();
     }
+    public ResponseEntity<?> getEvaluations(Long id){
+        Optional<Anonce> anonceOptional = anonceRepository.findById(id);
+        if(anonceOptional.isEmpty())return ResponseEntity.badRequest().build();
+        Anonce anonce = anonceOptional.get();
+        List<Evaluation> evaluations = anonce.getEvaluations();
+        List<Map<String,Object>> evaluationsDto = new ArrayList<>();
+        for(Evaluation evaluation : evaluations){
+            Map<String , Object> x = new HashMap<>();
+            x.put("nbretoiles",evaluation.getNbretoiles());
+            x.put("contenu",evaluation.getContenu());
+            x.put("date",evaluation.getDatePublication());
+            x.put("nom",evaluation.getIdMembre().getNom());
+            x.put("prenom",evaluation.getIdMembre().getPrenom());
+            evaluationsDto.add(x);
+        }
+        return ResponseEntity.ok(evaluationsDto);
+    }
+
 }
 

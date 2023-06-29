@@ -18,10 +18,7 @@ import java.util.List;
 public class Role {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    private String name;
+    private String id;
     @ManyToMany(mappedBy = "roles" ,fetch = FetchType.EAGER)
     private List<User> users;
 

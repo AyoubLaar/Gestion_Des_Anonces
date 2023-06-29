@@ -1,6 +1,7 @@
 package PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES;
 
 
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 
 public record ANONCE_DTO_SEARCH(
@@ -11,6 +12,7 @@ public record ANONCE_DTO_SEARCH(
         String imageUrl,
         String nomAnonce,
         String idVille ,
-        String idRegion
+        String idRegion,
+        STATUS status
 ){
 }

@@ -12,8 +12,8 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
     @Query(value="SELECT count(*) FROM reservation  " +
             "WHERE id_anonce = :id " +
             "AND status = 3 "+
-            "AND ( date_reservation_arrive between :date1 and :date2  " +
-            "OR date_reservation_depart between :date1 and :date2 )"
+            "AND ( NOT(:date1 < date_reservation_arrive and :date2 < date_reservation_arrive)  " +
+            "OR  NOT(date_reservation_depart < :date1 and date_reservation_depart < :date2 ) )  "
             , nativeQuery = true
     )
     int countReservations(long id ,LocalDate date1,LocalDate date2);

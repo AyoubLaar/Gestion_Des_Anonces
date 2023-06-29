@@ -1,7 +1,6 @@
 package PFE.Gestion_Des_Anonces.Api.Controllers;
 
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
-import PFE.Gestion_Des_Anonces.Api.Services.FileService;
 import PFE.Gestion_Des_Anonces.Api.Services.MembreService;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_PUBLIER;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.COMMENTAIRE_DTO_SUBMIT;
@@ -12,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping(path = "/api/Membre")
 @RequiredArgsConstructor
@@ -20,11 +21,9 @@ public class MembreController {
     @Autowired
     private final MembreService membreService;
 
-    @Autowired
-    private final FileService fileService;
     @DeleteMapping("DeleteFile")
-    public ResponseEntity<?> test(@RequestParam @NonNull String public_id){
-        return fileService.deleteImage(public_id);
+    public ResponseEntity<?> test(@RequestParam @NonNull Long id){
+        return membreService.deleteImage(id);
     }
 
     @PostMapping("/Reserver")
@@ -66,6 +65,16 @@ public class MembreController {
         return membreService.uncancelReservation(id);
     }
 
+    @PostMapping("/Reservations/accept")
+    public ResponseEntity<?> acceptReservation(@RequestParam @NonNull Long id){
+        return membreService.acceptReservation(id);
+    }
+
+    @PostMapping("/Reservations/refuse")
+    public ResponseEntity<?> refuseReservation(@RequestParam @NonNull Long id){
+        return membreService.refuseReservation(id);
+    }
+
     @GetMapping("/User/Retrieve")
     public ResponseEntity<?> getUserData(){
         return membreService.getUserData();
@@ -89,6 +98,21 @@ public class MembreController {
     @PostMapping("/Modify/Anonce")
     public ResponseEntity<?> modifierAnonce(@RequestParam @NonNull Long id , @RequestBody ANONCE_DTO_PUBLIER DTO){
         return membreService.modifierAnonce(id,DTO);
+    }
+
+    @PostMapping("/Modify/Anonce/ChangeStatus")
+    public ResponseEntity<?> modifierStatus(@RequestParam @NonNull Long id ){
+        return membreService.modifierStatus(id);
+    }
+
+    @PostMapping("/Modify/Anonce/supprimer")
+    public ResponseEntity<?> supprimerAnonce(@RequestParam @NonNull Long id ){
+        return membreService.supprimerAnonce(id);
+    }
+
+    @PostMapping("evaluer")
+    public ResponseEntity<?> evaluer(@RequestParam @NonNull Long id , @RequestBody Map<String,String> body){
+        return membreService.evaluer(id,body);
     }
 
 }

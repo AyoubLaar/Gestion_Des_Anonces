@@ -10,6 +10,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.Privilege.Privilege;
 import PFE.Gestion_Des_Anonces.Api.Models.Privilege.PrivilegeRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
 import PFE.Gestion_Des_Anonces.Api.Models.Region.RegionRepository;
+import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
+import PFE.Gestion_Des_Anonces.Api.Models.Reservation.ReservationRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.Role;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.RoleRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
@@ -27,10 +29,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -38,6 +39,9 @@ public class SetupDataLoader implements
         ApplicationListener<ContextRefreshedEvent> {
 
     boolean alreadySetup = false;
+
+    @Autowired
+    private ReservationRepository reservationRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -76,41 +80,44 @@ public class SetupDataLoader implements
 
         List<Privilege> adminPrivileges = Arrays.asList(
                 readPrivilege, writePrivilege);
-        createRoleIfNotFound("ADMIN", adminPrivileges);
-        createRoleIfNotFound("MEMBRE", Collections.singletonList(readPrivilege));
+        Role adminRole=createRoleIfNotFound("ADMIN", adminPrivileges);
+        Role membreRole=createRoleIfNotFound("MEMBRE", Collections.singletonList(readPrivilege));
 
-        List<Role> adminRole = roleRepository.findByName("ADMIN");
-        List<Role> membreRole = roleRepository.findByName("MEMBRE");
-        if(userRepository.findByEmail("test@test.com").isEmpty()){
+        if(userRepository.findByEmail("admin@admin.com").isEmpty()){
+        List<Role> roles = new ArrayList<>();
+        roles.add(adminRole);
         User user = new User();
         user.setNom("Test");
         user.setPrenom("Test");
-        user.setPassword(passwordEncoder.encode("test"));
-        user.setEmail("test@test.com");
-        user.setRoles(adminRole);
+        user.setPassword(passwordEncoder.encode("admin"));
+        user.setEmail("admin@admin.com");
+        user.setRoles(roles);
         user.setStatus(STATUS.enabled);
+        user.setDateCreationCompte(new Timestamp(System.currentTimeMillis()));
         userRepository.save(user);
         }
-        if(userRepository.findByEmail("Test_Membre@test.com").isEmpty()) {
+        if(userRepository.findByEmail("membre@membre.com").isEmpty()) {
+            List<Role> roles = new ArrayList<>();
+            roles.add(membreRole);
             User user1 = new User();
             user1.setNom("Test_Membre");
             user1.setPrenom("Test_Membre");
-            user1.setPassword(passwordEncoder.encode("test"));
-            user1.setEmail("Test_Membre@test.com");
-            user1.setRoles(membreRole);
+            user1.setPassword(passwordEncoder.encode("membre"));
+            user1.setEmail("membre@membre.com");
+            user1.setRoles(roles);
             user1.setStatus(STATUS.enabled);
+            user1.setDateCreationCompte(new Timestamp(System.currentTimeMillis()));
             userRepository.save(user1);
         }
-        saveAnonces();
-        saveAnonces();
-        saveAnonces();
-        saveAnonces();
         saveAnonces();
         alreadySetup = true;
     }
 
     private void saveAnonces(){
-        User user1 = userRepository.findAll().get(1);
+        List<User> users = userRepository.findAll();
+        User user1 = users.get(1);
+        User user2 = users.get(0);
+
         List<Commentaire> comments = List.of(
                 Commentaire.builder()
                         .contenu("Hadchi nadi nadi bezaf!")
@@ -167,7 +174,6 @@ public class SetupDataLoader implements
         casa.setIdRegion(casaStat);
         villeRepository.save(casa);
         Categories = categorieRepository.findAll();
-        comments = commentaireRepository.findAll();
         casa = villeRepository.findAll().get(0);
 
         List<Anonce> anonces = List.of(
@@ -177,7 +183,7 @@ public class SetupDataLoader implements
                         .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
                         .description("Nestled amidst breathtaking  decor, plush furnishings.")
                         .idProprietaire(user1)
-                        .imageUrl("https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&w=350&dpr=2")
+                        .imageUrl("https://res.cloudinary.com/drkbf7big/image/upload/v1687239981/1407953244000-177513283_nenimr.jpg")
                         .latitude((float)Math.random()*90)
                         .longitude((float)Math.random()*180)
                         .nomAnonce("Serena Hub")
@@ -188,6 +194,7 @@ public class SetupDataLoader implements
                         .nbreChambres(5)
                         .nbreEtages(1)
                         .nbreSalleBain(10)
+                        .dateCreationAnonce(new Timestamp(System.currentTimeMillis()))
                         .build(),
                 Anonce.builder()
                         .email("email@email.com")
@@ -195,7 +202,7 @@ public class SetupDataLoader implements
                         .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
                         .description("Nestled amidst breathtaking  decor, plush furnishings.")
                         .idProprietaire(user1)
-                        .imageUrl("https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&w=350&dpr=2")
+                        .imageUrl("https://res.cloudinary.com/drkbf7big/image/upload/v1687441522/k0vhjkajvfqcnktf61fc.jpg")
                         .latitude((float)Math.random()*90)
                         .longitude((float)Math.random()*180)
                         .nomAnonce("Serena no Appartement")
@@ -206,32 +213,15 @@ public class SetupDataLoader implements
                         .nbreChambres(5)
                         .nbreEtages(1)
                         .nbreSalleBain(10)
+                        .dateCreationAnonce(new Timestamp(System.currentTimeMillis()))
                         .build(),
                 Anonce.builder()
                         .email("email@email.com")
-                        .status(STATUS.enabled)
+                        .status(STATUS.adminDisabled)
                         .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
                         .description("Nestled amidst breathtaking  decor, plush furnishings.")
                         .idProprietaire(user1)
-                        .imageUrl("https://i.insider.com/60ae84bea412370019d321ff?width=700")
-                        .latitude((float)Math.random()*90)
-                        .longitude((float)Math.random()*180)
-                        .nomAnonce("Serena no Piscine")
-                        .type(TYPE.location)
-                        .prix(100)
-                        .telephone("0694853606")
-                        .surface(400)
-                        .nbreChambres(5)
-                        .nbreEtages(1)
-                        .nbreSalleBain(10)
-                        .build(),
-                Anonce.builder()
-                        .email("email@email.com")
-                        .status(STATUS.disabled)
-                        .dateCreationAnonce(Timestamp.valueOf(LocalDateTime.now()))
-                        .description("Nestled amidst breathtaking  decor, plush furnishings.")
-                        .idProprietaire(user1)
-                        .imageUrl("https://i.insider.com/60ae84bea412370019d321ff?width=700")
+                        .imageUrl("https://res.cloudinary.com/drkbf7big/image/upload/v1687877397/eseiwacnrwyt8oqsgrlo.jpg")
                         .latitude((float)Math.random()*90)
                         .longitude((float)Math.random()*180)
                         .nomAnonce("Disabled")
@@ -242,7 +232,9 @@ public class SetupDataLoader implements
                         .nbreChambres(5)
                         .nbreEtages(1)
                         .nbreSalleBain(10)
-                        .build());
+                        .dateCreationAnonce(new Timestamp(System.currentTimeMillis()))
+                        .build()
+        );
         comments = commentaireRepository.findAll();
         int i = 0;
         for(Commentaire C : comments){
@@ -256,30 +248,58 @@ public class SetupDataLoader implements
         anonces.get(1).setCategories(List.of(Categories.get(1)));
         anonces.get(2).setCategories(List.of(Categories.get(0)));
         anonceRepository.saveAll(anonces);
+        users = userRepository.findAll();
+        user2 = users.get(1);
+        anonces = anonceRepository.findAll();
+        Reservation reservation = Reservation.builder()
+                .dateReservation(new Timestamp(System.currentTimeMillis()))
+                .telephoneClient("0684629206")
+                .emailClient("ayoublaarouchi03@gmail.com")
+                .idAnonce(anonces.get(0))
+                .nbrEnfants(10)
+                .nbrAdultes(10)
+                .dateReservationArrive(LocalDate.of(2023,5,1))
+                .dateReservationDepart(LocalDate.of(2023,5,20))
+                .idMembre(user2)
+                .status(STATUS.accepted)
+                .build();
+        Reservation reservation1 = Reservation.builder()
+                .dateReservation(new Timestamp(System.currentTimeMillis()))
+                .telephoneClient("0684629206")
+                .emailClient("ayoublaarouchi03@gmail.com")
+                .idAnonce(anonces.get(0))
+                .nbrEnfants(10)
+                .nbrAdultes(10)
+                .dateReservationArrive(LocalDate.of(2023,5,1))
+                .dateReservationDepart(LocalDate.of(2023,5,20))
+                .idMembre(user2)
+                .status(STATUS.accepted)
+                .build();
+        reservationRepository.save(reservation);
+        reservationRepository.save(reservation1);
     }
 
     @Transactional
     Privilege createPrivilegeIfNotFound(String name) {
-        Privilege privilege = privilegeRepository.findByName(name);
-        if (privilege == null) {
-            privilege = new Privilege();
-            privilege.setName(name);
+        Optional<Privilege> privilegeOptional = privilegeRepository.findById(name);
+        if (privilegeOptional.isEmpty()) {
+            Privilege privilege = new Privilege(name,null);
             privilegeRepository.save(privilege);
+            return  privilegeRepository.findById(privilege.getId()).get();
         }
-        return privilege;
+        return privilegeOptional.get();
     }
 
     @Transactional
     Role createRoleIfNotFound(
-            String name, List<Privilege> privileges) {
-        List<Role> roleList = roleRepository.findByName(name);
-        if (roleList.size() == 0) {
-            Role role = new Role();
-            role.setName(name);
+        String name, List<Privilege> privileges) {
+        Optional<Role> roleOptional = roleRepository.findById(name);
+        if (roleOptional.isEmpty()) {
+            Role role = new Role(name,null,null);
             role.setPrivileges(privileges);
             roleRepository.save(role);
-            roleList.add(role);
+            return roleRepository.findById(role.getId()).get();
         }
-        return roleList.get(0);
+        return roleOptional.get();
     }
 }

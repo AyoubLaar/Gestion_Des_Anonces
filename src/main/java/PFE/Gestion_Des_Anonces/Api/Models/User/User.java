@@ -14,6 +14,7 @@ import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
 import PFE.Gestion_Des_Anonces.Api.Models.Privilege.Privilege;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.Role;
+import PFE.Gestion_Des_Anonces.Api.utils.SEXE;
 import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -40,7 +41,7 @@ public class User implements UserDetails, Serializable {
     @Column(unique = true)
     private String email;
     private String nom, password, prenom;
-    private Character sexe;
+    private SEXE sexe;
     private Timestamp dateCreationCompte;
     private LocalDate dateNaissance;
     @OneToMany(mappedBy = "idProprietaire")
@@ -71,11 +72,11 @@ public class User implements UserDetails, Serializable {
         List<String> privileges = new ArrayList<>();
         List<Privilege> collection = new ArrayList<>();
         for (Role role : roles) {
-            privileges.add(role.getName());
+            privileges.add(role.getId());
             collection.addAll(role.getPrivileges());
         }
         for (Privilege item : collection) {
-            privileges.add(item.getName());
+            privileges.add(item.getId());
         }
         return privileges;
     }

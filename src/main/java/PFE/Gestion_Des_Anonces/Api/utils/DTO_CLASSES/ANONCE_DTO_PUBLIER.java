@@ -1,9 +1,11 @@
 package PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES;
 
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 
 public record ANONCE_DTO_PUBLIER(
         TYPE type,
+        STATUS etat,
         float latitude,
         float longitude,
         float prix,

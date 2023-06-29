@@ -1,7 +1,5 @@
 package PFE.Gestion_Des_Anonces.Api.Controllers;
 
-import PFE.Gestion_Des_Anonces.Api.Services.FileService;
-import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_HUB;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_SEARCH;
 import PFE.Gestion_Des_Anonces.Api.Services.SearchService;
 import PFE.Gestion_Des_Anonces.Api.utils.SearchFilter;
@@ -26,7 +24,10 @@ public class SearchController {
         return searchService.getAll();
     }
 
-
+    @GetMapping("/Anonce/Evaluations")
+    public ResponseEntity<?> getEvaluations(@RequestParam @NonNull Long id){
+        return searchService.getEvaluations(id);
+    }
     @GetMapping(path = "/Anonce")
     public ResponseEntity<?> getAnonce(@RequestParam @NonNull Long id){
         return searchService.getAnonce(id);

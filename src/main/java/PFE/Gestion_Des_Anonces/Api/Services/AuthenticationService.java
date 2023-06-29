@@ -30,8 +30,6 @@ public class AuthenticationService {
     @Autowired
     private final JwtService jwtService;
 
-
-
     public ResponseEntity<Map<String,String>> register(User request) {
         List<User> userList = userRepository.findByEmail(request.getEmail());
         boolean UserExists = userList.size() == 1;
@@ -43,7 +41,7 @@ public class AuthenticationService {
                 .nom(request.getNom())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .roles(roleRepository.findByName("MEMBRE"))
+                .roles(List.of(roleRepository.findById("MEMBRE").get()))
                 .sexe(request.getSexe())
                 .dateNaissance(request.getDateNaissance())
                 .dateCreationCompte(new Timestamp(System.currentTimeMillis()))

@@ -1,6 +1,7 @@
 package PFE.Gestion_Des_Anonces.Api.Models.Evaluation;
 
 import PFE.Gestion_Des_Anonces.Api.Models.Anonce.Anonce;
+import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,5 +37,9 @@ public class Evaluation implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idAnonce")
     private Anonce idAnonce;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_reservation")
+    private Reservation reservation;
 }
 

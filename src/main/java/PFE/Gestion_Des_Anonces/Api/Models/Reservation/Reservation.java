@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 
 import PFE.Gestion_Des_Anonces.Api.Models.Anonce.Anonce;
+import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import jakarta.persistence.*;
@@ -31,8 +32,13 @@ public class Reservation implements Serializable {
     @JoinColumn(name = "idMembre")
     private User idMembre;
 
-    private LocalDate DateReservationArrive;
-    private LocalDate DateReservationDepart;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_evaluation")
+    private Evaluation evaluation;
+
+    private LocalDate dateReservationArrive;
+    private LocalDate dateReservationDepart;
+    private Timestamp dateReservation;
     private int nbrEnfants;
     private int nbrAdultes;
     private String emailClient;

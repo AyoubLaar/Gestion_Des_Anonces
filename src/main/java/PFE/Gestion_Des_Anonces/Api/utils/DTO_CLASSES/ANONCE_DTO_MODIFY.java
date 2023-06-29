@@ -1,10 +1,12 @@
 package PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES;
 
+import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 
 import java.util.List;
 
 public record ANONCE_DTO_MODIFY(
+        STATUS status,
         String Nom ,
         float nbrEtoiles,
         int Surface ,
