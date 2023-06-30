@@ -8,15 +8,14 @@ import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
 import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
 import PFE.Gestion_Des_Anonces.Api.Models.Region.RegionRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
+import PFE.Gestion_Des_Anonces.Api.Models.Reservation.ReservationRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.Role;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.RoleRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.User.User;
 import PFE.Gestion_Des_Anonces.Api.Models.User.UserRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.VilleRepository;
-import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_SEARCH;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.USER_ADMIN_DTO;
-import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.USER_DTO;
 import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +42,11 @@ public class AdminService {
     @Autowired
     private RegionRepository regionRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private ReservationRepository reservationRepository;
+
     public ResponseEntity<?> getAnonces() {
         List<Anonce> anonces = anonceRepository.findAll();
         List<Map<String,String>> anoncesDtos = new ArrayList<>();
@@ -55,13 +59,12 @@ public class AdminService {
             anonceDto.put("prix",anonce.getPrix()+"");
             anonceDto.put("dateCreation",anonce.getDateCreationAnonce().toString());
             anonceDto.put("status",anonce.getStatus().name());
+            anonceDto.put("idProprietaire", String.valueOf(anonce.getIdProprietaire().getIdUser()));
             anoncesDtos.add(anonceDto);
         }
         return ResponseEntity.ok(anoncesDtos);
     }
 
-    @Autowired
-    private RoleRepository roleRepository;
 
     public ResponseEntity<?> getUsers() {
         List<User> users = userRepository.findAll();
@@ -158,11 +161,36 @@ public class AdminService {
         User user = userOptional.get();
         if(user.getStatus().equals(STATUS.removed))return ResponseEntity.badRequest().build();
         if(user.getStatus().equals(STATUS.enabled)){
+            List<Anonce> anonces = user.getAnonces();
+            List<Reservation> reservations = user.getReservations();
+            for(Anonce anonce:anonces){
+                if(anonce.getStatus().equals(STATUS.enabled)) {
+                    anonce.setStatus(STATUS.disabledWithUser);
+                    List<Reservation> reservations1 = anonce.getReservations();
+                    for (Reservation reservation : reservations1) {
+                        if (reservation.getStatus().equals(STATUS.pending))
+                            reservation.setStatus(STATUS.cancelled);
+                    }
+                    reservationRepository.saveAll(reservations1);
+                }
+            }
+            anonceRepository.saveAll(anonces);
+            for(Reservation reservation:reservations){
+                if(reservation.getStatus().equals(STATUS.pending))
+                    reservation.setStatus(STATUS.cancelled);
+            }
             user.setStatus(STATUS.adminDisabled);
             userRepository.save(user);
             return ResponseEntity.ok().build();
         }
         if(user.getStatus().equals(STATUS.adminDisabled)){
+            List<Anonce> anonces = user.getAnonces();
+            for(Anonce anonce:anonces){
+                if(anonce.getStatus().equals(STATUS.disabledWithUser)) {
+                    anonce.setStatus(STATUS.enabled);
+                }
+            }
+            anonceRepository.saveAll(anonces);
             user.setStatus(STATUS.enabled);
             userRepository.save(user);
             return ResponseEntity.ok().build();
@@ -189,11 +217,128 @@ public class AdminService {
             reservationDto.put("idUser",reservation.getIdMembre().getIdUser());
             reservationDto.put("idReservation",reservation.getIdReservation());
             Evaluation evaluation = reservation.getEvaluation();
-            reservationDto.put("etoiles",evaluation.getNbretoiles());
+            if(evaluation != null) {
+                reservationDto.put("etoiles", evaluation.getNbretoiles());
+            }else{
+                reservationDto.put("etoiles",null);
+            }
             reservationsDto.add(reservationDto);
         }
         Map<String , Object> anonceDto = new HashMap<>();
         anonceDto.put("reservations",reservationsDto);
+        anonceDto.put("idAnonce",anonce.getIdAnonce());
+        anonceDto.put("idProprietaire",anonce.getIdProprietaire().getIdUser());
+        anonceDto.put("nom",anonce.getNomAnonce());
+        anonceDto.put("imageUrl",anonce.getImageUrl());
+        anonceDto.put("surface",anonce.getSurface());
+        anonceDto.put("etages",anonce.getNbreEtages());
+        anonceDto.put("chambres",anonce.getNbreChambres());
+        anonceDto.put("salles",anonce.getNbreSalleBain());
+        anonceDto.put("prix",String.valueOf(anonce.getPrix()));
+        anonceDto.put("description",anonce.getDescription());
+        anonceDto.put("email",anonce.getEmail());
+        anonceDto.put("telephone",anonce.getTelephone());
+        anonceDto.put("ville",anonce.getIdVille().getIdVille());
+        anonceDto.put("region",anonce.getIdVille().getIdRegion().getIdRegion());
+        anonceDto.put("type",anonce.getType());
+        anonceDto.put("status",anonce.getStatus());
+        anonceDto.put("dateCreation",anonce.getDateCreationAnonce().toString());
+        float nbretoiles = anonceRepository.getStars(anonce.getIdAnonce());
+        anonceDto.put("nbretoiles",nbretoiles);
         return ResponseEntity.ok(anonceDto);
+    }
+
+    public ResponseEntity<?> supprimerAnonce(Long id) {
+        Optional<Anonce> anonceOptional = anonceRepository.findById(id);
+        if(anonceOptional.isEmpty())return ResponseEntity.badRequest().build();
+        Anonce anonce = anonceOptional.get();
+        if(anonce.getStatus().equals(STATUS.adminRemoved) || anonce.getStatus().equals(STATUS.removed)){
+            return ResponseEntity.ok().build();
+        }else{
+            anonce.setStatus(STATUS.adminRemoved);
+            anonceRepository.save(anonce);
+            return ResponseEntity.ok().build();
+        }
+    }
+
+    public ResponseEntity<?> getUser(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if(userOptional.isEmpty())return ResponseEntity.badRequest().build();
+        User user = userOptional.get();
+        List<Reservation> reservations = user.getReservations();
+        List<Anonce> anonces = user.getAnonces();
+        List<Map<String,Object>> reservationsDto = new ArrayList<>();
+        List<Map<String,Object>> anoncesDto = new ArrayList<>();
+        for(Reservation reservation : reservations){
+            Map<String , Object> reservationDto = new HashMap<>();
+            reservationDto.put("dateArrive",reservation.getDateReservationArrive().toString());
+            reservationDto.put("dateDepart",reservation.getDateReservationDepart().toString());
+            reservationDto.put("dateCreation",reservation.getDateReservation().toString());
+            reservationDto.put("email",reservation.getEmailClient());
+            reservationDto.put("telephone",reservation.getTelephoneClient());
+            reservationDto.put("enfants",reservation.getNbrEnfants());
+            reservationDto.put("adultes",reservation.getNbrAdultes());
+            reservationDto.put("status",reservation.getStatus());
+            reservationDto.put("idAnonce",reservation.getIdAnonce().getIdAnonce());
+            reservationDto.put("idReservation",reservation.getIdReservation());
+            Evaluation evaluation = reservation.getEvaluation();
+            if(evaluation != null) {
+                reservationDto.put("etoiles", evaluation.getNbretoiles());
+            }else{
+                reservationDto.put("etoiles",null);
+            }
+            reservationsDto.add(reservationDto);
+        }
+
+        for(Anonce anonce : anonces){
+            Map<String,Object> anonceDto = new HashMap<>();
+            anonceDto.put("idAnonce",anonce.getIdAnonce());
+            anonceDto.put("nom",anonce.getNomAnonce());
+            anonceDto.put("prix",anonce.getPrix());
+            anonceDto.put("ville",anonce.getIdVille().getIdVille());
+            anonceDto.put("type",anonce.getType());
+            anonceDto.put("status",anonce.getStatus());
+            anonceDto.put("dateCreation",anonce.getDateCreationAnonce().toString());
+            anoncesDto.add(anonceDto);
+        }
+
+        Map<String , Object> userDto = new HashMap<>();
+        userDto.put("reservations",reservationsDto);
+        userDto.put("anonces",anoncesDto);
+        userDto.put("idUser",user.getIdUser());
+        userDto.put("nom",user.getNom());
+        userDto.put("prenom",user.getPrenom());
+        userDto.put("sexe",user.getSexe());
+        userDto.put("dateNaissance",user.getDateNaissance());
+        userDto.put("email",user.getEmail());
+        userDto.put("status",user.getStatus());
+        userDto.put("dateCreation",user.getDateCreationCompte());
+        return ResponseEntity.ok(userDto);
+    }
+
+    public ResponseEntity<?> supprimerUser(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if(userOptional.isEmpty())return ResponseEntity.badRequest().build();
+        User user = userOptional.get();
+        List<Anonce> anonces = user.getAnonces();
+        List<Reservation> reservations = user.getReservations();
+        for(Anonce anonce:anonces){
+            anonce.setStatus(STATUS.adminRemoved);
+            List<Reservation> reservations1 = anonce.getReservations();
+            for(Reservation reservation:reservations1){
+                if(reservation.getStatus().equals(STATUS.pending))
+                    reservation.setStatus(STATUS.cancelled);
+            }
+            reservationRepository.saveAll(reservations1);
+        }
+        anonceRepository.saveAll(anonces);
+        for(Reservation reservation:reservations){
+            if(reservation.getStatus().equals(STATUS.pending))
+                reservation.setStatus(STATUS.cancelled);
+        }
+        reservationRepository.saveAll(reservations);
+        user.setStatus(STATUS.adminRemoved);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
     }
 }

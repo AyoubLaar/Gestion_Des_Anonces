@@ -25,6 +25,10 @@ public class AdminController {
     public ResponseEntity<?> getUsers(){
         return adminService.getUsers();
     }
+    @GetMapping("/User")
+    public ResponseEntity<?> getUser(@RequestParam Long id){
+        return adminService.getUser(id);
+    }
 
     @PostMapping("/AddCategorie")
     public ResponseEntity<?> addCategorie(@RequestBody String categorie){
@@ -41,8 +45,18 @@ public class AdminController {
         return adminService.toggleAnonce(id);
     }
 
+    @PostMapping("/Anonce/supprimer")
+    public ResponseEntity<?> supprimerAnonce(@RequestParam Long id){
+        return adminService.supprimerAnonce(id);
+    }
+
     @PostMapping("/User/toggle")
     public ResponseEntity<?> toggleUser(@RequestParam Long id){
         return adminService.toggleUser(id);
+    }
+
+    @PostMapping("/User/supprimer")
+    public ResponseEntity<?> supprimerUser(@RequestParam Long id){
+        return adminService.supprimerUser(id);
     }
 }

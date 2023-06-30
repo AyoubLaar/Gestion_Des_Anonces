@@ -21,10 +21,16 @@ public class MembreController {
     @Autowired
     private final MembreService membreService;
 
-    @DeleteMapping("DeleteFile")
-    public ResponseEntity<?> test(@RequestParam @NonNull Long id){
+    @DeleteMapping("/DeleteFile")
+    public ResponseEntity<?> deleteFile(@RequestParam @NonNull Long id){
         return membreService.deleteImage(id);
     }
+
+    @DeleteMapping("/DeleteFileCloudinary")
+    public ResponseEntity<?> deleteImageCloudinary(@RequestBody @NonNull  String url){
+        return membreService.deleteImageCloudinary(url);
+    }
+
 
     @PostMapping("/Reserver")
     public ResponseEntity<?> reserver(@RequestBody @NonNull RESERVATION_DTO reservation){
@@ -108,6 +114,11 @@ public class MembreController {
     @PostMapping("/Modify/Anonce/supprimer")
     public ResponseEntity<?> supprimerAnonce(@RequestParam @NonNull Long id ){
         return membreService.supprimerAnonce(id);
+    }
+
+    @PostMapping("/Modify/User/supprimer")
+    public ResponseEntity<?> supprimerUser(){
+        return membreService.supprimerUser();
     }
 
     @PostMapping("evaluer")

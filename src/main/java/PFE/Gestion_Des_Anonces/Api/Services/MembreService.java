@@ -19,7 +19,6 @@ import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
 import com.cloudinary.Cloudinary;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -539,6 +538,16 @@ public class MembreService {
         }
     }
 
+    public ResponseEntity<?> deleteImageCloudinary(String url) {
+            String [] splitUrl = url.split("/");
+            String publicId = splitUrl[splitUrl.length -1 ].split("\\.")[0];
+            try {
+                cloudinary.uploader().destroy(publicId,null);
+                return ResponseEntity.ok().build();
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+    }
 
     public ResponseEntity<?> evaluer(Long id , Map<String,String> body) {
         Optional<Reservation> reservationOptional = reservationRepository.findById(id);
@@ -599,6 +608,35 @@ public class MembreService {
         if(anonce.getIdProprietaire().getIdUser() != user.getIdUser())return ResponseEntity.badRequest().build();
         anonce.setStatus(STATUS.removed);
         anonceRepository.save(anonce);
+        return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<?> supprimerUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = (User) principal;
+        user = userRepository.findById(user.getIdUser()).get();
+        if(user.getStatus().equals(STATUS.enabled)){
+            List<Anonce> anonces = user.getAnonces();
+            List<Reservation> reservations = user.getReservations();
+            for(Anonce anonce:anonces){
+                anonce.setStatus(STATUS.removed);
+                List<Reservation> reservations1 = anonce.getReservations();
+                for(Reservation reservation:reservations1){
+                    if(reservation.getStatus().equals(STATUS.pending))
+                        reservation.setStatus(STATUS.cancelled);
+                }
+                reservationRepository.saveAll(reservations1);
+            }
+            anonceRepository.saveAll(anonces);
+            for(Reservation reservation:reservations){
+                if(reservation.getStatus().equals(STATUS.pending))
+                    reservation.setStatus(STATUS.cancelled);
+            }
+            reservationRepository.saveAll(reservations);
+            user.setStatus(STATUS.removed);
+            userRepository.save(user);
+            return ResponseEntity.ok().build();
+        }
         return ResponseEntity.ok().build();
     }
 }
