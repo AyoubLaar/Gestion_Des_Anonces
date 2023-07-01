@@ -58,8 +58,8 @@ public class MembreService {
         if(anonceOptional.isEmpty()){
             return ResponseEntity.badRequest().build();
         }
-        int count = reservationRepository.countReservations(reservation.id(),reservation.DateReservationArrive(),reservation.DateReservationDepart());
-        if(count > 0 ){
+        List<Reservation> reservations = reservationRepository.countReservations(reservation.id(),reservation.DateReservationArrive(),reservation.DateReservationDepart());
+        if(reservations.size() > 0 ){
             return ResponseEntity.badRequest().build();
         }
         Anonce anonce = anonceOptional.get();
