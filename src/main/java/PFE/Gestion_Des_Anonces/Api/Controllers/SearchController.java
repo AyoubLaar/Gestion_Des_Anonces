@@ -42,9 +42,9 @@ public class SearchController {
     public List<String> getVilles(){
         return searchService.getVilles();
     }
-    @GetMapping(path = "/regions")
+    @GetMapping(path = "/pays")
     public List<String> getregions(){
-        return searchService.getregions();
+        return searchService.getPays();
     }
 
     @GetMapping(path = "/categories")

@@ -15,12 +15,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Region implements Serializable {
+public class Pays implements Serializable {
 
-        @Column(name="idRegion")
+        @Column(name="idPays")
         @Id
-        private String idRegion;
+        private String idPays;
 
-        @OneToMany(mappedBy="idRegion")
+        @OneToMany(mappedBy="idPays")
         private List<Ville> villes;
 }

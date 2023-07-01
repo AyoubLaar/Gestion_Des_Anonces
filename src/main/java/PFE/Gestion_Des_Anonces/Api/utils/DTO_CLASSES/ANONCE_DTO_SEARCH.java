@@ -12,7 +12,8 @@ public record ANONCE_DTO_SEARCH(
         String imageUrl,
         String nomAnonce,
         String idVille ,
-        String idRegion,
+        String adresse,
+        String idPays,
         STATUS status
 ){
 }

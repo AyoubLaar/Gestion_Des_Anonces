@@ -94,7 +94,7 @@ public class Config {
                 .authorizeRequests(
                         auth -> auth
                         .requestMatchers("/api/Membre/**")
-                        .hasAnyAuthority("MEMBRE","ADMIN")
+                        .hasAuthority("MEMBRE")
                         .requestMatchers("/api/Admin/**")
                         .hasAuthority("ADMIN")
                         .requestMatchers("/api/Auth/VerifyTokenAdmin")

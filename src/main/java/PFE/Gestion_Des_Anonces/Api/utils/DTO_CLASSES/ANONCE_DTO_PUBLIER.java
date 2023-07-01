@@ -15,11 +15,12 @@ public record ANONCE_DTO_PUBLIER(
         int etages,
         String nomAnonce,
         String description,
+        String adresse,
         String imageUrl,
         String email,
         String telephone,
         String ville,
-        String region,
+        String pays,
         String [] categories
 ) {
 }

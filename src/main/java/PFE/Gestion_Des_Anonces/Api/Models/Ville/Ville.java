@@ -1,7 +1,7 @@
 package PFE.Gestion_Des_Anonces.Api.Models.Ville;
 
 import PFE.Gestion_Des_Anonces.Api.Models.Anonce.Anonce;
-import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.Pays;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,8 +22,8 @@ public class Ville implements Serializable {
     private String idVille;
 
     @ManyToOne()
-    @JoinColumn(name = "idRegion")
-    private Region idRegion;
+    @JoinColumn(name = "idPays")
+    private Pays idPays;
 
     @OneToMany(mappedBy = "idVille")
     private List<Anonce> Anonces;

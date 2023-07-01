@@ -12,6 +12,7 @@ public record ANONCE_DTO_MODIFY(
         int Surface ,
         int nbreSalleBain,
         int nbreChambres ,
+        String adresse,
         int nbreEtages ,
         float prix ,
         String imageUrl,
@@ -19,7 +20,7 @@ public record ANONCE_DTO_MODIFY(
         String  email ,
         String telephone ,
         String ville ,
-        String region,
+        String pays,
         TYPE type,
         List<RESERVATION_DTO_PROPRIETAIRE> reservations ,
         List<EVALUATION_DTO_PROPRIETAIRE> evaluations

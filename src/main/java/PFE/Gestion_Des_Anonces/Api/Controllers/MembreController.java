@@ -66,11 +66,6 @@ public class MembreController {
         return membreService.cancelReservation(id);
     }
 
-    @PostMapping("/Reservations/uncancel")
-    public ResponseEntity<?> uncancelReservation(@RequestParam @NonNull Long id){
-        return membreService.uncancelReservation(id);
-    }
-
     @PostMapping("/Reservations/accept")
     public ResponseEntity<?> acceptReservation(@RequestParam @NonNull Long id){
         return membreService.acceptReservation(id);

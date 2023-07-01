@@ -40,6 +40,7 @@ public class Anonce implements Serializable {
     @Column(length = 512)
     private String description;
     private String imageUrl;
+    private String adresse;
     @ManyToOne
     @JoinColumn(name = "idVille")
     private Ville idVille;

@@ -8,8 +8,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.Commentaire.Commentaire;
 import PFE.Gestion_Des_Anonces.Api.Models.Commentaire.CommentaireRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Privilege.Privilege;
 import PFE.Gestion_Des_Anonces.Api.Models.Privilege.PrivilegeRepository;
-import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
-import PFE.Gestion_Des_Anonces.Api.Models.Region.RegionRepository;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.Pays;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.PaysRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.ReservationRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.Role;
@@ -49,7 +49,7 @@ public class SetupDataLoader implements
     @Autowired
     private AnonceRepository anonceRepository;
     @Autowired
-    private RegionRepository regionRepository;
+    private PaysRepository paysRepository;
 
     @Autowired
     private CategorieRepository categorieRepository;
@@ -160,18 +160,17 @@ public class SetupDataLoader implements
         for(Categorie C : Categories){
             categorieRepository.save(C);
         }
-        Region casaStat = Region
+        Pays maroc = Pays
                 .builder()
-                .idRegion("Casablanca-settat")
+                .idPays("Maroc")
                 .build();
-        regionRepository.save(casaStat);
+        paysRepository.save(maroc);
         Ville casa = Ville
                 .builder()
                 .idVille("Casablanca")
-                .idRegion(casaStat)
                 .build();
-        casaStat = regionRepository.findAll().get(0);
-        casa.setIdRegion(casaStat);
+        maroc = paysRepository.findAll().get(0);
+        casa.setIdPays(maroc);
         villeRepository.save(casa);
         Categories = categorieRepository.findAll();
         casa = villeRepository.findAll().get(0);

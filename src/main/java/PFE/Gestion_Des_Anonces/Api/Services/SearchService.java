@@ -6,8 +6,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.Anonce.AnonceRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.Categorie;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.CategorieRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
-import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
-import PFE.Gestion_Des_Anonces.Api.Models.Region.RegionRepository;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.Pays;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.PaysRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.VilleRepository;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.ANONCE_DTO_HUB;
@@ -32,7 +32,7 @@ public class SearchService {
     @Autowired
     private final VilleRepository villeRepository;
     @Autowired
-    private final RegionRepository regionRepository;
+    private final PaysRepository paysRepository;
 
     @Autowired
     private final CategorieRepository categorieRepository;
@@ -82,7 +82,8 @@ public class SearchService {
                 anonce.getImageUrl(),
                 anonce.getNomAnonce(),
                 anonce.getIdVille().getIdVille(),
-                anonce.getIdVille().getIdRegion().getIdRegion(),
+                anonce.getAdresse(),
+                anonce.getIdVille().getIdPays().getIdPays(),
                 anonce.getStatus()
         )).toList();
     }
@@ -101,7 +102,8 @@ public class SearchService {
                 anonce.getImageUrl(),
                 anonce.getNomAnonce(),
                 anonce.getIdVille().getIdVille(),
-                anonce.getIdVille().getIdRegion().getIdRegion(),
+                anonce.getAdresse(),
+                anonce.getIdVille().getIdPays().getIdPays(),
                 anonce.getStatus()
         )).toList();
     }
@@ -143,16 +145,17 @@ public class SearchService {
                     A.getEmail(),
                     A.getTelephone(),
                     A.getIdVille().getIdVille(),
-                    A.getIdVille().getIdRegion().getIdRegion(),
+                    A.getIdVille().getIdPays().getIdPays(),
+                    A.getAdresse(),
                     A.getType(),
                     comments
                 )
         );
     }
 
-    public List<String> getregions() {
-        List<Region> regions = regionRepository.findAll();
-        return regions.stream().map(Region::getIdRegion).toList();
+    public List<String> getPays() {
+        List<Pays> regions = paysRepository.findAll();
+        return regions.stream().map(Pays::getIdPays).toList();
     }
     public ResponseEntity<?> getEvaluations(Long id){
         Optional<Anonce> anonceOptional = anonceRepository.findById(id);

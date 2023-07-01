@@ -185,26 +185,10 @@ public class MembreService {
                 anonce.getImageUrl(),
                 anonce.getNomAnonce(),
                 anonce.getIdVille().getIdVille(),
-                anonce.getIdVille().getIdRegion().getIdRegion(),
+                anonce.getIdVille().getIdPays().getIdPays(),
+                anonce.getAdresse(),
                 anonce.getStatus()
         )).toList());
-    }
-
-    public ResponseEntity<?> uncancelReservation(Long id) {
-        try{
-            Optional<Reservation> res = reservationRepository.findById(id);
-            if(res.isEmpty())throw new Exception();
-            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            User user = (User) principal;
-            user = userRepository.findById(user.getIdUser()).get();
-            Reservation reservation = res.get();
-            if(reservation.getIdMembre().getIdUser() != user.getIdUser() || !(user.getStatus() == STATUS.enabled))throw new Exception();
-            reservation.setStatus(STATUS.pending);
-            reservationRepository.save(reservation);
-            return ResponseEntity.ok().build();
-        }catch(Exception e){
-            return ResponseEntity.badRequest().build();
-        }
     }
 
     public ResponseEntity<?> getUserData() {
@@ -287,6 +271,7 @@ public class MembreService {
                         A.getSurface(),
                         A.getNbreSalleBain(),
                         A.getNbreChambres(),
+                        A.getAdresse(),
                         A.getNbreEtages(),
                         A.getPrix(),
                         A.getImageUrl(),
@@ -294,7 +279,7 @@ public class MembreService {
                         A.getEmail(),
                         A.getTelephone(),
                         A.getIdVille().getIdVille(),
-                        A.getIdVille().getIdRegion().getIdRegion(),
+                        A.getIdVille().getIdPays().getIdPays(),
                         A.getType(),
                         reservations,
                         evaluations
@@ -320,7 +305,8 @@ public class MembreService {
                     DTO.email().isEmpty() ||
                     DTO.telephone().isEmpty() ||
                     DTO.ville().isEmpty() ||
-                    DTO.region().isEmpty() ||
+                    DTO.pays().isEmpty() ||
+                    DTO.adresse().isEmpty() ||
                     DTO.categories() == null || DTO.categories().length == 0) {
                 return ResponseEntity.badRequest().build();
             }
@@ -329,7 +315,7 @@ public class MembreService {
         user = userRepository.findById(user.getIdUser()).get();
         if(user.isEnabled()) {
             Optional<Ville> villeOptional = villeRepository.findById(DTO.ville());
-            if(villeOptional.isEmpty() || !villeOptional.get().getIdRegion().getIdRegion().equals(DTO.region()))
+            if(villeOptional.isEmpty() || !villeOptional.get().getIdPays().getIdPays().equals(DTO.pays()))
                 return ResponseEntity.badRequest().build();
             Ville ville = villeOptional.get();
             List<Categorie> categories = new ArrayList<>();
@@ -359,6 +345,7 @@ public class MembreService {
                     .dateCreationAnonce(new Timestamp(System.currentTimeMillis()))
                     .status(STATUS.enabled)
                     .telephone(DTO.telephone())
+                    .adresse(DTO.adresse())
                     .build();
             anonceRepository.save(anonce);
             return ResponseEntity.ok().build();
@@ -395,11 +382,12 @@ public class MembreService {
                     anonce.getNbreEtages(),
                     anonce.getNomAnonce(),
                     anonce.getDescription(),
+                    anonce.getAdresse(),
                     anonce.getImageUrl(),
                     anonce.getEmail(),
                     anonce.getTelephone(),
                     anonce.getIdVille().getIdVille(),
-                    anonce.getIdVille().getIdRegion().getIdRegion(),
+                    anonce.getIdVille().getIdPays().getIdPays(),
                     categories
             ));
         }
@@ -420,7 +408,7 @@ public class MembreService {
                 DTO.email().isEmpty() ||
                 DTO.telephone().isEmpty() ||
                 DTO.ville().isEmpty() ||
-                DTO.region().isEmpty() ||
+                DTO.pays().isEmpty() ||
                 DTO.categories() == null || DTO.categories().length == 0) {
             return ResponseEntity.badRequest().build();
         }
@@ -429,7 +417,7 @@ public class MembreService {
         user = userRepository.findById(user.getIdUser()).get();
         if(user.isEnabled()) {
             Optional<Ville> villeOptional = villeRepository.findById(DTO.ville());
-            if(villeOptional.isEmpty() || !villeOptional.get().getIdRegion().getIdRegion().equals(DTO.region()))
+            if(villeOptional.isEmpty() || !villeOptional.get().getIdPays().getIdPays().equals(DTO.pays()))
                 return ResponseEntity.badRequest().build();
             Ville ville = villeOptional.get();
             List<Categorie> categories = new ArrayList<>();
@@ -463,6 +451,7 @@ public class MembreService {
             anonce.setDescription(DTO.description());
             anonce.setType(DTO.type());
             anonce.setTelephone(DTO.telephone());
+            anonce.setAdresse(DTO.adresse());
             anonceRepository.save(anonce);
             return ResponseEntity.ok().build();
         }else{

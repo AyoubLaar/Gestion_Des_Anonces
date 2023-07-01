@@ -5,8 +5,8 @@ import PFE.Gestion_Des_Anonces.Api.Models.Anonce.AnonceRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.Categorie;
 import PFE.Gestion_Des_Anonces.Api.Models.Categorie.CategorieRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Evaluation.Evaluation;
-import PFE.Gestion_Des_Anonces.Api.Models.Region.Region;
-import PFE.Gestion_Des_Anonces.Api.Models.Region.RegionRepository;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.Pays;
+import PFE.Gestion_Des_Anonces.Api.Models.Region.PaysRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.Reservation;
 import PFE.Gestion_Des_Anonces.Api.Models.Reservation.ReservationRepository;
 import PFE.Gestion_Des_Anonces.Api.Models.Role.Role;
@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 
 @Service
@@ -40,7 +39,7 @@ public class AdminService {
     private VilleRepository villeRepository;
 
     @Autowired
-    private RegionRepository regionRepository;
+    private PaysRepository paysRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -95,31 +94,31 @@ public class AdminService {
     public ResponseEntity<?> addVille(String villeString, String regionString) {
         Optional<Ville> villeOptional = villeRepository.findById(villeString);
         if(villeOptional.isEmpty()){
-            Optional<Region> regionOptional  = regionRepository.findById(regionString);
-            Region region=null;
-            if(regionOptional.isEmpty()){
-                region = Region.builder().idRegion(regionString).build();
-                regionRepository.save(region);
+            Optional<Pays> paysOptional  = paysRepository.findById(regionString);
+            Pays pays=null;
+            if(paysOptional.isEmpty()){
+                pays = Pays.builder().idPays(regionString).build();
+                paysRepository.save(pays);
             }else{
-                region = regionOptional.get();
+                pays = paysOptional.get();
             }
-            Ville ville = Ville.builder().idVille(villeString).idRegion(region).build();
+            Ville ville = Ville.builder().idVille(villeString).idPays(pays).build();
             villeRepository.save(ville);
             return ResponseEntity.ok().build();
         }else{
             Ville ville = villeOptional.get();
-            if(ville.getIdRegion().getIdRegion().equals(regionString))
+            if(ville.getIdPays().getIdPays().equals(regionString))
                 return ResponseEntity.badRequest().build();
             else{
-                Optional<Region> regionOptional  = regionRepository.findById(regionString);
+                Optional<Pays> regionOptional  = paysRepository.findById(regionString);
                 if(regionOptional.isEmpty()){
-                    Region region = Region.builder().idRegion(regionString).build();
-                    regionRepository.save(region);
-                    ville.setIdRegion(region);
+                    Pays pays = Pays.builder().idPays(regionString).build();
+                    paysRepository.save(pays);
+                    ville.setIdPays(pays);
                     villeRepository.save(ville);
                 }else{
-                    Region region = regionOptional.get();
-                    ville.setIdRegion(region);
+                    Pays pays = regionOptional.get();
+                    ville.setIdPays(pays);
                     villeRepository.save(ville);
                     return ResponseEntity.ok().build();
                 }
@@ -239,10 +238,11 @@ public class AdminService {
         anonceDto.put("email",anonce.getEmail());
         anonceDto.put("telephone",anonce.getTelephone());
         anonceDto.put("ville",anonce.getIdVille().getIdVille());
-        anonceDto.put("region",anonce.getIdVille().getIdRegion().getIdRegion());
+        anonceDto.put("pays",anonce.getIdVille().getIdPays().getIdPays());
         anonceDto.put("type",anonce.getType());
         anonceDto.put("status",anonce.getStatus());
         anonceDto.put("dateCreation",anonce.getDateCreationAnonce().toString());
+        anonceDto.put("adresse",anonce.getAdresse());
         float nbretoiles = anonceRepository.getStars(anonce.getIdAnonce());
         anonceDto.put("nbretoiles",nbretoiles);
         return ResponseEntity.ok(anonceDto);

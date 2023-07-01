@@ -17,7 +17,8 @@ public record ANONCE_DTO_HUB(
         String  email ,
         String telephone ,
         String ville ,
-        String region,
+        String pays,
+        String adresse,
         TYPE type,
         List<COMMENTAIRE_DTO> Commentaires
 ) {
