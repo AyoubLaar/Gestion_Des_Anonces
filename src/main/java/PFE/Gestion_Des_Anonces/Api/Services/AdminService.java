@@ -130,7 +130,7 @@ public class AdminService {
         Optional<Anonce> anonceOptional = anonceRepository.findById(id);
         if(anonceOptional.isEmpty())return ResponseEntity.badRequest().build();
         Anonce anonce = anonceOptional.get();
-        if(anonce.getStatus().equals(STATUS.removed))return ResponseEntity.badRequest().build();
+        if(anonce.getStatus().equals(STATUS.removed) || !anonce.getIdProprietaire().isEnabled())return ResponseEntity.badRequest().build();
         if(anonce.getStatus().equals(STATUS.enabled)) {
             anonce.setStatus(STATUS.adminDisabled);
             anonceRepository.save(anonce);
@@ -255,6 +255,12 @@ public class AdminService {
         if(anonce.getStatus().equals(STATUS.adminRemoved) || anonce.getStatus().equals(STATUS.removed)){
             return ResponseEntity.ok().build();
         }else{
+            List<Reservation> reservations1 = anonce.getReservations();
+            for(Reservation reservation:reservations1){
+                if(reservation.getStatus().equals(STATUS.pending))
+                    reservation.setStatus(STATUS.cancelled);
+            }
+            reservationRepository.saveAll(reservations1);
             anonce.setStatus(STATUS.adminRemoved);
             anonceRepository.save(anonce);
             return ResponseEntity.ok().build();

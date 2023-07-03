@@ -597,6 +597,12 @@ public class MembreService {
         if(anonceOptional.isEmpty())return ResponseEntity.badRequest().build();
         Anonce anonce = anonceOptional.get();
         if(anonce.getIdProprietaire().getIdUser() != user.getIdUser())return ResponseEntity.badRequest().build();
+        List<Reservation> reservations1 = anonce.getReservations();
+        for(Reservation reservation:reservations1){
+            if(reservation.getStatus().equals(STATUS.pending))
+                reservation.setStatus(STATUS.cancelled);
+        }
+        reservationRepository.saveAll(reservations1);
         anonce.setStatus(STATUS.removed);
         anonceRepository.save(anonce);
         return ResponseEntity.ok().build();
