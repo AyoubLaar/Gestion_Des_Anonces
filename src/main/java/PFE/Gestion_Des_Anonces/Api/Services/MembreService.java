@@ -16,6 +16,7 @@ import PFE.Gestion_Des_Anonces.Api.Models.Ville.Ville;
 import PFE.Gestion_Des_Anonces.Api.Models.Ville.VilleRepository;
 import PFE.Gestion_Des_Anonces.Api.utils.DTO_CLASSES.*;
 import PFE.Gestion_Des_Anonces.Api.utils.STATUS;
+import PFE.Gestion_Des_Anonces.Api.utils.TYPE;
 import com.cloudinary.Cloudinary;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -63,11 +64,12 @@ public class MembreService {
             return ResponseEntity.badRequest().build();
         }
         Anonce anonce = anonceOptional.get();
+        if(!anonce.getType().equals(TYPE.location) || !anonce.getEnabled())return ResponseEntity.badRequest().build();
         try{
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             User user = (User)principal;
             user = userRepository.findById(user.getIdUser()).get();
-            if(anonce.getIdProprietaire().getIdUser() == user.getIdUser() || !anonce.getEnabled()){
+            if(anonce.getIdProprietaire().getIdUser() == user.getIdUser()){
                 throw new Exception();
             }
             LocalDate now = LocalDate.now();
