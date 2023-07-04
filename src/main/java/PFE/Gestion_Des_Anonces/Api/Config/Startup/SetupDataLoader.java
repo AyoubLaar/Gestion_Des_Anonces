@@ -96,6 +96,19 @@ public class SetupDataLoader implements
         user.setDateCreationCompte(new Timestamp(System.currentTimeMillis()));
         userRepository.save(user);
         }
+        if(userRepository.findByEmail("proprietaire@proprietaire.com").isEmpty()) {
+            List<Role> roles = new ArrayList<>();
+            roles.add(membreRole);
+            User user1 = new User();
+            user1.setNom("proprietaire");
+            user1.setPrenom("proprietaire");
+            user1.setPassword(passwordEncoder.encode("proprietaire"));
+            user1.setEmail("proprietaire@proprietaire.com");
+            user1.setRoles(roles);
+            user1.setStatus(STATUS.enabled);
+            user1.setDateCreationCompte(new Timestamp(System.currentTimeMillis()));
+            userRepository.save(user1);
+        }
         if(userRepository.findByEmail("membre@membre.com").isEmpty()) {
             List<Role> roles = new ArrayList<>();
             roles.add(membreRole);
@@ -251,7 +264,7 @@ public class SetupDataLoader implements
         anonces.get(2).setCategories(List.of(Categories.get(0)));
         anonceRepository.saveAll(anonces);
         users = userRepository.findAll();
-        user2 = users.get(1);
+        user2 = users.get(2);
         anonces = anonceRepository.findAll();
         Reservation reservation = Reservation.builder()
                 .dateReservation(new Timestamp(System.currentTimeMillis()))

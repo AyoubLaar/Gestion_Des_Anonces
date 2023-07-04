@@ -516,6 +516,7 @@ public class MembreService {
             String url = anonce.getImageUrl();
             String [] splitUrl = url.split("/");
             String publicId = splitUrl[splitUrl.length -1 ].split("\\.")[0];
+            System.out.println("PUBLIC ID : "+publicId);
             try {
                 cloudinary.uploader().destroy(publicId,null);
                 anonce.setImageUrl(null);
@@ -532,6 +533,7 @@ public class MembreService {
     public ResponseEntity<?> deleteImageCloudinary(String url) {
             String [] splitUrl = url.split("/");
             String publicId = splitUrl[splitUrl.length -1 ].split("\\.")[0];
+            System.out.println("PUBLIC ID : "+publicId);
             try {
                 cloudinary.uploader().destroy(publicId,null);
                 return ResponseEntity.ok().build();
