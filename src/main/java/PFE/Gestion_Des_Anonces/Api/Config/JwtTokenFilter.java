@@ -40,7 +40,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         final String Token = authHeader.split(" ")[1].trim();
         final String email = jwtService.extractEmail(Token);
         List<User> userList = userRepository.findByEmail(email);
-        if(userList.size() == 0){
+        if(userList.isEmpty()){
             filterChain.doFilter(request,response);
             return;
         }
@@ -52,8 +52,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken
                 authentication = new UsernamePasswordAuthenticationToken(
                 user, null,
-                user == null ?
-                        List.of() : user.getAuthorities()
+                user.getAuthorities()
         );
         authentication.setDetails(
                 new WebAuthenticationDetailsSource().buildDetails(request)

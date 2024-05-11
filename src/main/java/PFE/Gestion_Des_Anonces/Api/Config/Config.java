@@ -5,12 +5,14 @@ import PFE.Gestion_Des_Anonces.Api.Services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,9 +32,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class Config {
 
-    private final String CLOUD_NAME = "drkbf7big";
-    private final String API_KEY = "176817514936632";
-    private final String API_SECRET = "y-5ZNzPECJeZxd23g2icnPRYTvs";
+    @Value("${cloudinary.name}")
+    private final String CLOUD_NAME;
+    @Value("${cloudinary.apiKey}")
+    private final String API_KEY;
+    @Value("${cloudinary.apiSecret}")
+    private final String API_SECRET;
 
     @Autowired
     private final JwtTokenFilter jwtTokenFilter;
@@ -77,7 +82,7 @@ public class Config {
                 .userDetailsService(userService)
                 .cors()
                 .and()
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()

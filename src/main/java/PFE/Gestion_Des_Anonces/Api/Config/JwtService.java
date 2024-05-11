@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +18,11 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "6A576E5A7234753778214125442A472D4B6150645367566B5870327335763879";
+    @Value("${jwt.secretKey}")
+    private String SECRET_KEY;
 
-    private static final long EXPIRATION_DURATION = 100*60*60*24;
+    @Value("${jwt.expiration}")
+    private long EXPIRATION_DURATION;
 
     public String extractEmail(String Token){
         return extractClaim(Token , Claims::getSubject);

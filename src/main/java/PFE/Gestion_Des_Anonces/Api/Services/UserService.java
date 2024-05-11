@@ -21,11 +21,6 @@ public class UserService implements UserDetailsService {
     @Autowired
     private final UserRepository userRepository;
 
-    @GetMapping
-    public List<User> loadUsers(){
-        return userRepository.findAll();
-    }
-
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         List<User> userList = userRepository.findByEmail(email);
@@ -35,10 +30,5 @@ public class UserService implements UserDetailsService {
         User user =  userList.get(0);
         return user;
     }
-
-    /*public USER_DTO getUserDetails(String Token){
-        return null;
-    }*/
-
 
 }
